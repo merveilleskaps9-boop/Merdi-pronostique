@@ -1,0 +1,232 @@
+[
+  {
+    "timestamp": "2026-05-01T20:00:23.930Z",
+    "type": "success",
+    "message": "Scheduleur initialise (20h00 analyse, 07h00 rapport)"
+  },
+  {
+    "timestamp": "2026-05-01T20:00:23.875Z",
+    "type": "success",
+    "message": "Serveur demarre sur le port 3000"
+  },
+  {
+    "timestamp": "2026-05-01T19:46:38.279Z",
+    "type": "success",
+    "message": "Scheduleur initialise (20h00 analyse, 07h00 rapport)"
+  },
+  {
+    "timestamp": "2026-05-01T19:46:38.238Z",
+    "type": "success",
+    "message": "Serveur demarre sur le port 3000"
+  },
+  {
+    "timestamp": "2026-05-01T19:27:04.118Z",
+    "type": "error",
+    "message": "Erreur analyse manuelle: Expected double-quoted property name in JSON at position 23361 (line 656 column 43)"
+  },
+  {
+    "timestamp": "2026-05-01T19:26:22.302Z",
+    "type": "info",
+    "message": "Generation des 15 tickets via Claude AI..."
+  },
+  {
+    "timestamp": "2026-05-01T19:26:22.300Z",
+    "type": "info",
+    "message": "85 evenements avec cotes recuperes"
+  },
+  {
+    "timestamp": "2026-05-01T19:26:14.637Z",
+    "type": "info",
+    "message": "Recuperation des cotes via The Odds API..."
+  },
+  {
+    "timestamp": "2026-05-01T19:26:14.636Z",
+    "type": "info",
+    "message": "0 matchs trouves, enrichissement des stats..."
+  },
+  {
+    "timestamp": "2026-05-01T19:26:13.828Z",
+    "type": "info",
+    "message": "Recuperation des fixtures via API-Football..."
+  },
+  {
+    "timestamp": "2026-05-01T19:26:13.828Z",
+    "type": "info",
+    "message": "Debut analyse pour 2026-05-02"
+  },
+  {
+    "timestamp": "2026-05-01T19:26:13.826Z",
+    "type": "info",
+    "message": "Analyse manuelle lancee pour 2026-05-02"
+  },
+  {
+    "timestamp": "2026-05-01T19:25:55.859Z",
+    "type": "success",
+    "message": "Scheduleur initialise (20h00 analyse, 07h00 rapport)"
+  },
+  {
+    "timestamp": "2026-05-01T19:25:55.819Z",
+    "type": "success",
+    "message": "Serveur demarre sur le port 3000"
+  },
+  {
+    "timestamp": "2026-05-01T19:17:52.845Z",
+    "type": "success",
+    "message": "Scheduleur initialise (20h00 analyse, 07h00 rapport)"
+  },
+  {
+    "timestamp": "2026-05-01T19:17:52.796Z",
+    "type": "success",
+    "message": "Serveur demarre sur le port 3000"
+  },
+  {
+    "timestamp": "2026-05-01T19:09:51.656Z",
+    "type": "success",
+    "message": "15 tickets generes et sauvegardes pour 2026-05-02"
+  },
+  {
+    "timestamp": "2026-05-01T19:08:36.376Z",
+    "type": "info",
+    "message": "Generation des 15 tickets via Claude AI..."
+  },
+  {
+    "timestamp": "2026-05-01T19:08:36.374Z",
+    "type": "info",
+    "message": "85 evenements avec cotes recuperes"
+  },
+  {
+    "timestamp": "2026-05-01T19:08:28.572Z",
+    "type": "info",
+    "message": "Recuperation des cotes via The Odds API..."
+  },
+  {
+    "timestamp": "2026-05-01T19:08:28.571Z",
+    "type": "info",
+    "message": "0 matchs trouves, enrichissement des stats..."
+  },
+  {
+    "timestamp": "2026-05-01T19:08:27.701Z",
+    "type": "info",
+    "message": "Recuperation des fixtures via API-Football..."
+  },
+  {
+    "timestamp": "2026-05-01T19:08:27.700Z",
+    "type": "info",
+    "message": "Debut analyse pour 2026-05-02"
+  },
+  {
+    "timestamp": "2026-05-01T19:08:27.698Z",
+    "type": "info",
+    "message": "Analyse manuelle lancee pour 2026-05-02"
+  },
+  {
+    "timestamp": "2026-05-01T19:07:51.414Z",
+    "type": "success",
+    "message": "Scheduleur initialise (20h00 analyse, 07h00 rapport)"
+  },
+  {
+    "timestamp": "2026-05-01T19:07:51.369Z",
+    "type": "success",
+    "message": "Serveur demarre sur le port 3000"
+  },
+  {
+    "timestamp": "2026-05-01T19:00:58.889Z",
+    "type": "error",
+    "message": "Erreur analyse manuelle: 404 {\"type\":\"error\",\"error\":{\"type\":\"not_found_error\",\"message\":\"model: claude-sonnet-4-20250514\"},\"request_id\":\"req_011CacN8RCakdRXaeq8N6pvw\"}"
+  },
+  {
+    "timestamp": "2026-05-01T19:00:58.677Z",
+    "type": "info",
+    "message": "Generation des 15 tickets via Claude AI..."
+  },
+  {
+    "timestamp": "2026-05-01T19:00:58.674Z",
+    "type": "info",
+    "message": "85 evenements avec cotes recuperes"
+  },
+  {
+    "timestamp": "2026-05-01T19:00:50.660Z",
+    "type": "info",
+    "message": "Recuperation des cotes via The Odds API..."
+  },
+  {
+    "timestamp": "2026-05-01T19:00:50.659Z",
+    "type": "info",
+    "message": "0 matchs trouves, enrichissement des stats..."
+  },
+  {
+    "timestamp": "2026-05-01T19:00:49.850Z",
+    "type": "info",
+    "message": "Recuperation des fixtures via API-Football..."
+  },
+  {
+    "timestamp": "2026-05-01T19:00:49.849Z",
+    "type": "info",
+    "message": "Debut analyse pour 2026-05-02"
+  },
+  {
+    "timestamp": "2026-05-01T19:00:49.846Z",
+    "type": "info",
+    "message": "Analyse manuelle lancee pour 2026-05-02"
+  },
+  {
+    "timestamp": "2026-05-01T19:00:10.903Z",
+    "type": "success",
+    "message": "Scheduleur initialise (20h00 analyse, 07h00 rapport)"
+  },
+  {
+    "timestamp": "2026-05-01T19:00:10.850Z",
+    "type": "success",
+    "message": "Serveur demarre sur le port 3000"
+  },
+  {
+    "timestamp": "2026-05-01T18:45:37.096Z",
+    "type": "error",
+    "message": "Erreur analyse manuelle: 404 {\"type\":\"error\",\"error\":{\"type\":\"not_found_error\",\"message\":\"model: claude-sonnet-4-20250514\"},\"request_id\":\"req_011CacLxTcYcNz6HqMKeTERx\"}"
+  },
+  {
+    "timestamp": "2026-05-01T18:45:36.752Z",
+    "type": "info",
+    "message": "Generation des 15 tickets via Claude AI..."
+  },
+  {
+    "timestamp": "2026-05-01T18:45:36.749Z",
+    "type": "info",
+    "message": "85 evenements avec cotes recuperes"
+  },
+  {
+    "timestamp": "2026-05-01T18:45:29.230Z",
+    "type": "info",
+    "message": "Recuperation des cotes via The Odds API..."
+  },
+  {
+    "timestamp": "2026-05-01T18:45:29.229Z",
+    "type": "warn",
+    "message": "Erreur API-Football: Request failed with status code 403 - analyse sans donnees externes"
+  },
+  {
+    "timestamp": "2026-05-01T18:45:28.979Z",
+    "type": "info",
+    "message": "Recuperation des fixtures via API-Football..."
+  },
+  {
+    "timestamp": "2026-05-01T18:45:28.978Z",
+    "type": "info",
+    "message": "Debut analyse pour 2026-05-02"
+  },
+  {
+    "timestamp": "2026-05-01T18:45:28.975Z",
+    "type": "info",
+    "message": "Analyse manuelle lancee pour 2026-05-02"
+  },
+  {
+    "timestamp": "2026-05-01T18:42:54.342Z",
+    "type": "success",
+    "message": "Scheduleur initialise (20h00 analyse, 07h00 rapport)"
+  },
+  {
+    "timestamp": "2026-05-01T18:42:54.297Z",
+    "type": "success",
+    "message": "Serveur demarre sur le port 3000"
+  }
+]

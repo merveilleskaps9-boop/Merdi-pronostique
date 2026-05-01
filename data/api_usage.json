@@ -1,0 +1,9 @@
+{
+  "footballDailyUsed": 3,
+  "footballDailyLimit": 100,
+  "footballLastReset": "2026-05-01",
+  "oddsMonthlyUsed": 182,
+  "oddsMonthlyLimit": 500,
+  "oddsLastReset": "2026-05",
+  "updatedAt": "2026-05-01T19:26:22.301Z"
+}

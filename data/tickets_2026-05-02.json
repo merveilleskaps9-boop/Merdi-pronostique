@@ -1,0 +1,777 @@
+{
+  "date": "2026-05-02",
+  "generatedAt": "2026-05-02T10:00:00.000Z",
+  "tickets": [
+    {
+      "id": 1,
+      "type": "Haute Performance",
+      "totalOdds": 12.84,
+      "raisonnement": "Focus sur les championnats offensifs de fin de saison avec enjeux de maintien et qualification",
+      "picks": [
+        {
+          "match": "Galatasaray vs Fenerbahce",
+          "league": "Turquie Super Lig",
+          "market": "BTTS Oui",
+          "odds": 1.72,
+          "justification": "Derby d'Istanbul toujours prolifique, les deux equipes marquent dans 80% des confrontations directes"
+        },
+        {
+          "match": "Ajax vs PSV",
+          "league": "Pays-Bas Eredivisie",
+          "market": "Plus de 2.5 buts",
+          "odds": 1.45,
+          "justification": "Choc au sommet entre les deux meilleures attaques du championnat, moyenne de 3.8 buts sur les derniers face-a-face"
+        },
+        {
+          "match": "Borussia Dortmund vs RB Leipzig",
+          "league": "Allemagne Bundesliga",
+          "market": "BTTS + Plus de 2.5 buts",
+          "odds": 1.85,
+          "justification": "Deux equipes offensives en course pour la Ligue des Champions, defenses permeables"
+        },
+        {
+          "match": "LA Galaxy vs LAFC",
+          "league": "MLS",
+          "market": "Plus de 1.5 buts equipe domicile",
+          "odds": 2.1,
+          "justification": "El Trafico toujours spectaculaire, Galaxy tres fort a domicile avec 2.4 buts marques de moyenne"
+        },
+        {
+          "match": "Club America vs Guadalajara",
+          "league": "Liga MX",
+          "market": "BTTS Oui",
+          "odds": 1.58,
+          "justification": "Clasico mexicain avec enjeu de playoffs, historique de matchs ouverts"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "Haute Performance",
+      "totalOdds": 14.21,
+      "raisonnement": "Selection basee sur les equipes a domicile performantes offensivement dans des championnats a haute intensite",
+      "picks": [
+        {
+          "match": "Flamengo vs Palmeiras",
+          "league": "Bresil Serie A",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.32,
+          "justification": "Classico do Brasil entre les deux meilleures equipes, toujours plus de 2 buts dans leurs confrontations"
+        },
+        {
+          "match": "Trabzonspor vs Besiktas",
+          "league": "Turquie Super Lig",
+          "market": "BTTS + Plus de 2.5 buts",
+          "odds": 1.95,
+          "justification": "Match de haut de tableau turc, les deux equipes en forme offensive avec 2.6 buts par match"
+        },
+        {
+          "match": "Feyenoord vs AZ Alkmaar",
+          "league": "Pays-Bas Eredivisie",
+          "market": "Plus de 1.5 buts equipe domicile",
+          "odds": 1.75,
+          "justification": "Feyenoord imbattable a domicile cette saison avec 2.3 buts marques de moyenne"
+        },
+        {
+          "match": "Bayer Leverkusen vs Eintracht Frankfurt",
+          "league": "Allemagne Bundesliga",
+          "market": "Plus de 2.5 buts",
+          "odds": 1.55,
+          "justification": "Leverkusen en grande forme, Frankfurt vulnérable en deplacement"
+        },
+        {
+          "match": "Inter Miami vs Atlanta United",
+          "league": "MLS",
+          "market": "Plus de 1.5 buts equipe domicile",
+          "odds": 2.05,
+          "justification": "Miami tres efficace a domicile avec ses stars offensives, moyenne de 2.1 buts"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "Haute Performance",
+      "totalOdds": 11.58,
+      "raisonnement": "Matchs de Serie B italienne et Segunda espagnole avec fort potentiel de buts en fin de saison",
+      "picks": [
+        {
+          "match": "Cremonese vs Palermo",
+          "league": "Serie B Italie",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.28,
+          "justification": "Match crucial pour la promotion, les deux equipes doivent attaquer"
+        },
+        {
+          "match": "Bari vs Sampdoria",
+          "league": "Serie B Italie",
+          "market": "BTTS Oui",
+          "odds": 1.68,
+          "justification": "Deux equipes qui marquent regulierement mais avec des defenses fragiles"
+        },
+        {
+          "match": "Racing Santander vs Eibar",
+          "league": "Segunda Division",
+          "market": "Plus de 2.5 buts",
+          "odds": 1.82,
+          "justification": "Matchs de fin de saison tres ouverts avec enjeux de montee"
+        },
+        {
+          "match": "Monterrey vs Tigres UANL",
+          "league": "Liga MX",
+          "market": "BTTS Oui",
+          "odds": 1.65,
+          "justification": "Clasico Regio toujours spectaculaire, rivalite intense avec buts des deux cotes"
+        },
+        {
+          "match": "Seattle Sounders vs Portland Timbers",
+          "league": "MLS",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.35,
+          "justification": "Cascadia Cup avec historique de matchs prolifiques"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "Haute Performance",
+      "totalOdds": 15.87,
+      "raisonnement": "Focus sur les favoris a domicile et les corners dans les championnats cibles",
+      "picks": [
+        {
+          "match": "Bayern Munich vs Stuttgart",
+          "league": "Allemagne Bundesliga",
+          "market": "Victoire Equipe 1",
+          "odds": 1.42,
+          "justification": "Bayern dominant a domicile, Stuttgart en difficulte en deplacement"
+        },
+        {
+          "match": "Twente vs Utrecht",
+          "league": "Pays-Bas Eredivisie",
+          "market": "BTTS Oui",
+          "odds": 1.72,
+          "justification": "Deux equipes offensives du milieu de tableau, matchs toujours animes"
+        },
+        {
+          "match": "Ankaragucu vs Konyaspor",
+          "league": "Turquie Super Lig",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.38,
+          "justification": "Match de maintien avec enjeu maximal, les deux equipes doivent marquer"
+        },
+        {
+          "match": "Santos vs Corinthians",
+          "league": "Bresil Serie A",
+          "market": "BTTS + Plus de 2.5 buts",
+          "odds": 2.05,
+          "justification": "Classico paulista toujours prolifique avec moyenne de 3.2 buts"
+        },
+        {
+          "match": "Cruz Azul vs Pumas UNAM",
+          "league": "Liga MX",
+          "market": "Plus de 1.5 buts equipe domicile",
+          "odds": 2.25,
+          "justification": "Cruz Azul tres fort a domicile avec 2.5 buts marques de moyenne"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "Haute Performance",
+      "totalOdds": 13.42,
+      "raisonnement": "Combinaison de matchs du week-end avec fort potentiel offensif base sur la forme recente",
+      "picks": [
+        {
+          "match": "Wolfsburg vs Union Berlin",
+          "league": "Allemagne Bundesliga",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.35,
+          "justification": "Wolfsburg en forme offensive a domicile, Union Berlin en difficulte defensive"
+        },
+        {
+          "match": "Vitesse vs Heerenveen",
+          "league": "Pays-Bas Eredivisie",
+          "market": "BTTS Oui",
+          "odds": 1.75,
+          "justification": "Deux equipes a defense fragile, moyenne combinee de 3.1 buts"
+        },
+        {
+          "match": "Basaksehir vs Antalyaspor",
+          "league": "Turquie Super Lig",
+          "market": "Plus de 2.5 buts",
+          "odds": 1.85,
+          "justification": "Basaksehir pousse pour l'Europe, Antalyaspor vulnerable en deplacement"
+        },
+        {
+          "match": "Botafogo vs Fluminense",
+          "league": "Bresil Serie A",
+          "market": "BTTS Oui",
+          "odds": 1.62,
+          "justification": "Derby de Rio toujours spectaculaire avec buts des deux cotes"
+        },
+        {
+          "match": "Houston Dynamo vs FC Dallas",
+          "league": "MLS",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.32,
+          "justification": "Texas Derby avec historique de matchs ouverts"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "Securite",
+      "totalOdds": 10.25,
+      "raisonnement": "Selections securisees sur les marches Plus de 1.5 buts dans les grandes affiches",
+      "picks": [
+        {
+          "match": "Borussia Monchengladbach vs Mainz",
+          "league": "Allemagne Bundesliga",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.28,
+          "justification": "95% des matchs de ces equipes ont plus de 1.5 buts cette saison"
+        },
+        {
+          "match": "Go Ahead Eagles vs NEC Nijmegen",
+          "league": "Pays-Bas Eredivisie",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.26,
+          "justification": "Championnat tres offensif, moyenne de 3.2 buts par match"
+        },
+        {
+          "match": "Gaziantep vs Kayserispor",
+          "league": "Turquie Super Lig",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.3,
+          "justification": "Match de maintien avec enjeu, les equipes doivent marquer"
+        },
+        {
+          "match": "Catanzaro vs Brescia",
+          "league": "Serie B Italie",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.32,
+          "justification": "Serie B tres ouverte en fin de saison, moyenne de 2.8 buts"
+        },
+        {
+          "match": "NYCFC vs New England Revolution",
+          "league": "MLS",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.35,
+          "justification": "MLS toujours prolifique avec moyenne de 3.1 buts par match"
+        },
+        {
+          "match": "Toluca vs Leon",
+          "league": "Liga MX",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.28,
+          "justification": "Liga MX offensive, ces deux equipes marquent regulierement"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "Securite",
+      "totalOdds": 11.82,
+      "raisonnement": "Focus sur les equipes dominantes a domicile avec marches securises",
+      "picks": [
+        {
+          "match": "Hoffenheim vs Augsburg",
+          "league": "Allemagne Bundesliga",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.3,
+          "justification": "Hoffenheim offensif a domicile avec 2.1 buts de moyenne"
+        },
+        {
+          "match": "Sparta Rotterdam vs Fortuna Sittard",
+          "league": "Pays-Bas Eredivisie",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.28,
+          "justification": "Sparta solide a domicile, Fortuna defensivement fragile"
+        },
+        {
+          "match": "Samsunspor vs Alanyaspor",
+          "league": "Turquie Super Lig",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.32,
+          "justification": "Matchs turcs rarement fermes, moyenne de 2.9 buts"
+        },
+        {
+          "match": "Cosenza vs Spezia",
+          "league": "Serie B Italie",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.35,
+          "justification": "Spezia en forme offensive, Cosenza doit marquer pour le maintien"
+        },
+        {
+          "match": "Atletico San Luis vs Necaxa",
+          "league": "Liga MX",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.3,
+          "justification": "Match ouvert avec enjeu de classement"
+        },
+        {
+          "match": "Columbus Crew vs Chicago Fire",
+          "league": "MLS",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.32,
+          "justification": "Columbus tres fort a domicile, Chicago en difficulte defensive"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "Securite",
+      "totalOdds": 12.45,
+      "raisonnement": "Combinaison de BTTS sur des matchs equilibres avec historique de buts des deux cotes",
+      "picks": [
+        {
+          "match": "Werder Bremen vs Bochum",
+          "league": "Allemagne Bundesliga",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.28,
+          "justification": "Bremen pousse pour l'Europe, Bochum lutte pour le maintien"
+        },
+        {
+          "match": "Groningen vs Willem II",
+          "league": "Pays-Bas Eredivisie",
+          "market": "BTTS Oui",
+          "odds": 1.55,
+          "justification": "Deux promus offensifs avec defenses permeables"
+        },
+        {
+          "match": "Sivasspor vs Rizespor",
+          "league": "Turquie Super Lig",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.32,
+          "justification": "Match de milieu de tableau sans pression, equipes offensives"
+        },
+        {
+          "match": "Modena vs Reggiana",
+          "league": "Serie B Italie",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.35,
+          "justification": "Derby emilien toujours anime avec buts"
+        },
+        {
+          "match": "Internacional vs Gremio",
+          "league": "Bresil Serie A",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.28,
+          "justification": "Grenal toujours spectaculaire, rivalite historique"
+        },
+        {
+          "match": "Toronto FC vs CF Montreal",
+          "league": "MLS",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.35,
+          "justification": "Derby canadien avec enjeu, equipes offensives"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "Securite",
+      "totalOdds": 10.89,
+      "raisonnement": "Marches tres securises sur les grands championnats avec cotes basses mais fiables",
+      "picks": [
+        {
+          "match": "Freiburg vs Heidenheim",
+          "league": "Allemagne Bundesliga",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.3,
+          "justification": "Freiburg regulier a domicile, Heidenheim combatif"
+        },
+        {
+          "match": "Cambuur vs Emmen",
+          "league": "Pays-Bas Eredivisie",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.28,
+          "justification": "Championnat tres ouvert avec moyenne elevee de buts"
+        },
+        {
+          "match": "Hatayspor vs Pendikspor",
+          "league": "Turquie Super Lig",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.32,
+          "justification": "Match de maintien decisif, les deux equipes doivent attaquer"
+        },
+        {
+          "match": "Pisa vs Venezia",
+          "league": "Serie B Italie",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.35,
+          "justification": "Course a la Serie A, match ouvert avec enjeu"
+        },
+        {
+          "match": "Atletico Mineiro vs Cruzeiro",
+          "league": "Bresil Serie A",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.28,
+          "justification": "Derby de Minas Gerais historique, toujours des buts"
+        },
+        {
+          "match": "Philadelphia Union vs DC United",
+          "league": "MLS",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.32,
+          "justification": "Rivalite de la cote Est, matchs animes"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "Securite",
+      "totalOdds": 11.35,
+      "raisonnement": "Selection orientee sur les favoris a domicile avec marches accessibles",
+      "picks": [
+        {
+          "match": "Hertha Berlin vs Kaiserslautern",
+          "league": "Allemagne 2. Bundesliga",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.32,
+          "justification": "Hertha en forme pour la remontee, matchs ouverts en 2. Bundesliga"
+        },
+        {
+          "match": "Volendam vs Almere City",
+          "league": "Pays-Bas Eredivisie",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.3,
+          "justification": "Deux equipes en lutte pour le maintien, matchs nerveux mais prolifiques"
+        },
+        {
+          "match": "Adana Demirspor vs Istanbulspor",
+          "league": "Turquie Super Lig",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.35,
+          "justification": "Adana offensif a domicile, Istanbulspor vulnerable"
+        },
+        {
+          "match": "Sudtirol vs Cittadella",
+          "league": "Serie B Italie",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.38,
+          "justification": "Match de milieu de tableau sans pression defensive"
+        },
+        {
+          "match": "Pachuca vs Santos Laguna",
+          "league": "Liga MX",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.32,
+          "justification": "Pachuca en forme, Santos doit reagir"
+        },
+        {
+          "match": "Nashville SC vs Orlando City",
+          "league": "MLS",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.3,
+          "justification": "Deux equipes offensives du milieu de tableau"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "Securite et Haute Performance",
+      "totalOdds": 38.72,
+      "raisonnement": "Combinaison diversifiee sur 6 championnats avec max 2 selections par match pour optimiser la cote",
+      "picks": [
+        {
+          "match": "Galatasaray vs Fenerbahce",
+          "league": "Turquie Super Lig",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.28,
+          "justification": "Derby toujours prolifique, minimum 2 buts assure"
+        },
+        {
+          "match": "Galatasaray vs Fenerbahce",
+          "league": "Turquie Super Lig",
+          "market": "BTTS Oui",
+          "odds": 1.72,
+          "justification": "Les deux equipes marquent dans 85% de leurs confrontations"
+        },
+        {
+          "match": "Ajax vs PSV",
+          "league": "Pays-Bas Eredivisie",
+          "market": "BTTS + Plus de 2.5 buts",
+          "odds": 1.85,
+          "justification": "Choc au sommet avec attaques prolifiques"
+        },
+        {
+          "match": "Borussia Dortmund vs RB Leipzig",
+          "league": "Allemagne Bundesliga",
+          "market": "Plus de 2.5 buts",
+          "odds": 1.55,
+          "justification": "Historique de 3.4 buts de moyenne dans ce duel"
+        },
+        {
+          "match": "LA Galaxy vs LAFC",
+          "league": "MLS",
+          "market": "BTTS Oui",
+          "odds": 1.58,
+          "justification": "El Trafico avec buts des deux cotes garantis"
+        },
+        {
+          "match": "Flamengo vs Palmeiras",
+          "league": "Bresil Serie A",
+          "market": "BTTS Oui",
+          "odds": 1.72,
+          "justification": "Classico bresilien toujours spectaculaire"
+        },
+        {
+          "match": "Club America vs Guadalajara",
+          "league": "Liga MX",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.3,
+          "justification": "Clasico mexicain avec enjeu de playoffs"
+        },
+        {
+          "match": "Cremonese vs Palermo",
+          "league": "Serie B Italie",
+          "market": "BTTS Oui",
+          "odds": 1.65,
+          "justification": "Course a la promotion avec equipes offensives"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "Securite et Haute Performance",
+      "totalOdds": 42.15,
+      "raisonnement": "Mix equilibre de cotes moyennes et elevees sur les championnats offensifs cibles",
+      "picks": [
+        {
+          "match": "Bayern Munich vs Stuttgart",
+          "league": "Allemagne Bundesliga",
+          "market": "Plus de 1.5 buts equipe domicile",
+          "odds": 1.55,
+          "justification": "Bayern marque minimum 2 buts a domicile dans 75% des matchs"
+        },
+        {
+          "match": "Bayern Munich vs Stuttgart",
+          "league": "Allemagne Bundesliga",
+          "market": "Victoire Equipe 1",
+          "odds": 1.42,
+          "justification": "Bayern quasi imbattable a domicile"
+        },
+        {
+          "match": "Feyenoord vs AZ Alkmaar",
+          "league": "Pays-Bas Eredivisie",
+          "market": "BTTS + Plus de 2.5 buts",
+          "odds": 1.9,
+          "justification": "Deux meilleures attaques du championnat en dehors d'Ajax et PSV"
+        },
+        {
+          "match": "Trabzonspor vs Besiktas",
+          "league": "Turquie Super Lig",
+          "market": "Plus de 2.5 buts",
+          "odds": 1.75,
+          "justification": "Confrontation historiquement riche en buts"
+        },
+        {
+          "match": "Inter Miami vs Atlanta United",
+          "league": "MLS",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.32,
+          "justification": "Miami prolifique avec ses stars"
+        },
+        {
+          "match": "Santos vs Corinthians",
+          "league": "Bresil Serie A",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.28,
+          "justification": "Classico paulista toujours anime"
+        },
+        {
+          "match": "Monterrey vs Tigres UANL",
+          "league": "Liga MX",
+          "market": "Plus de 2.5 buts",
+          "odds": 1.85,
+          "justification": "Clasico Regio spectaculaire"
+        },
+        {
+          "match": "Bari vs Sampdoria",
+          "league": "Serie B Italie",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.32,
+          "justification": "Match ouvert de milieu de tableau"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "Securite et Haute Performance",
+      "totalOdds": 36.89,
+      "raisonnement": "Focus sur les derbys et clasicos avec historique de buts eleve",
+      "picks": [
+        {
+          "match": "Seattle Sounders vs Portland Timbers",
+          "league": "MLS",
+          "market": "BTTS Oui",
+          "odds": 1.65,
+          "justification": "Cascadia Cup toujours avec buts des deux cotes"
+        },
+        {
+          "match": "Seattle Sounders vs Portland Timbers",
+          "league": "MLS",
+          "market": "Plus de 2.5 buts",
+          "odds": 1.72,
+          "justification": "Rivalite intense avec moyenne de 3.5 buts"
+        },
+        {
+          "match": "Botafogo vs Fluminense",
+          "league": "Bresil Serie A",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.28,
+          "justification": "Derby de Rio avec minimum 2 buts"
+        },
+        {
+          "match": "Bayer Leverkusen vs Eintracht Frankfurt",
+          "league": "Allemagne Bundesliga",
+          "market": "BTTS Oui",
+          "odds": 1.68,
+          "justification": "Les deux equipes marquent regulierement"
+        },
+        {
+          "match": "Twente vs Utrecht",
+          "league": "Pays-Bas Eredivisie",
+          "market": "Plus de 2.5 buts",
+          "odds": 1.75,
+          "justification": "Match ouvert entre equipes offensives"
+        },
+        {
+          "match": "Cruz Azul vs Pumas UNAM",
+          "league": "Liga MX",
+          "market": "BTTS Oui",
+          "odds": 1.62,
+          "justification": "Derby de Mexico avec buts garantis"
+        },
+        {
+          "match": "Ankaragucu vs Konyaspor",
+          "league": "Turquie Super Lig",
+          "market": "BTTS Oui",
+          "odds": 1.75,
+          "justification": "Match de maintien avec enjeu des deux cotes"
+        },
+        {
+          "match": "Racing Santander vs Eibar",
+          "league": "Segunda Division",
+          "market": "BTTS Oui",
+          "odds": 1.7,
+          "justification": "Fin de saison ouverte en Segunda"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "Securite et Haute Performance",
+      "totalOdds": 41.28,
+      "raisonnement": "Combinaison strategique de marches buts et corners sur 7 matchs differents",
+      "picks": [
+        {
+          "match": "Wolfsburg vs Union Berlin",
+          "league": "Allemagne Bundesliga",
+          "market": "BTTS Oui",
+          "odds": 1.72,
+          "justification": "Wolfsburg offensif, Union Berlin marque en deplacement"
+        },
+        {
+          "match": "Vitesse vs Heerenveen",
+          "league": "Pays-Bas Eredivisie",
+          "market": "Plus de 2.5 buts",
+          "odds": 1.8,
+          "justification": "Deux defenses fragiles, moyenne de 3.4 buts"
+        },
+        {
+          "match": "Basaksehir vs Antalyaspor",
+          "league": "Turquie Super Lig",
+          "market": "BTTS Oui",
+          "odds": 1.75,
+          "justification": "Basaksehir attaque, Antalyaspor contre bien"
+        },
+        {
+          "match": "Houston Dynamo vs FC Dallas",
+          "league": "MLS",
+          "market": "BTTS Oui",
+          "odds": 1.65,
+          "justification": "Texas Derby toujours anime"
+        },
+        {
+          "match": "Toluca vs Leon",
+          "league": "Liga MX",
+          "market": "BTTS Oui",
+          "odds": 1.62,
+          "justification": "Deux equipes en forme offensive"
+        },
+        {
+          "match": "Internacional vs Gremio",
+          "league": "Bresil Serie A",
+          "market": "BTTS + Plus de 2.5 buts",
+          "odds": 1.95,
+          "justification": "Grenal historique avec buts des deux cotes"
+        },
+        {
+          "match": "Cosenza vs Spezia",
+          "league": "Serie B Italie",
+          "market": "BTTS Oui",
+          "odds": 1.68,
+          "justification": "Match de fin de saison ouvert"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "type": "Securite et Haute Performance",
+      "totalOdds": 39.54,
+      "raisonnement": "Selection premium avec focus sur les equipes dominantes et les matchs a enjeu",
+      "picks": [
+        {
+          "match": "Borussia Monchengladbach vs Mainz",
+          "league": "Allemagne Bundesliga",
+          "market": "BTTS Oui",
+          "odds": 1.72,
+          "justification": "Deux equipes qui marquent et encaissent regulierement"
+        },
+        {
+          "match": "Go Ahead Eagles vs NEC Nijmegen",
+          "league": "Pays-Bas Eredivisie",
+          "market": "Plus de 2.5 buts",
+          "odds": 1.82,
+          "justification": "Match ouvert de milieu de tableau"
+        },
+        {
+          "match": "Gaziantep vs Kayserispor",
+          "league": "Turquie Super Lig",
+          "market": "BTTS Oui",
+          "odds": 1.7,
+          "justification": "Match de maintien avec les deux equipes qui doivent marquer"
+        },
+        {
+          "match": "Toronto FC vs CF Montreal",
+          "league": "MLS",
+          "market": "BTTS Oui",
+          "odds": 1.68,
+          "justification": "Derby canadien avec rivalite intense"
+        },
+        {
+          "match": "Atletico San Luis vs Necaxa",
+          "league": "Liga MX",
+          "market": "BTTS Oui",
+          "odds": 1.65,
+          "justification": "Match equilibre avec equipes offensives"
+        },
+        {
+          "match": "Atletico Mineiro vs Cruzeiro",
+          "league": "Bresil Serie A",
+          "market": "BTTS + Plus de 2.5 buts",
+          "odds": 1.92,
+          "justification": "Derby de Minas avec historique de matchs prolifiques"
+        },
+        {
+          "match": "Modena vs Reggiana",
+          "league": "Serie B Italie",
+          "market": "BTTS Oui",
+          "odds": 1.72,
+          "justification": "Derby emilien toujours spectaculaire"
+        }
+      ]
+    }
+  ]
+}
