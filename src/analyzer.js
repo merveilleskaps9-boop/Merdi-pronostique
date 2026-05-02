@@ -9,7 +9,7 @@ function calculateTotalOdds(picks) {
   }, 1) * 100) / 100;
 }
 
-function buildAnalysisPrompt(fixtures, odds, date) {
+function buildAnalysisPrompt(fixtures, odds, date, oddsAvailable) {
   const fixturesSummary = fixtures.slice(0, 40).map(f => {
     const matchOdds = odds.find(o =>
       o.homeTeam && f.home && f.home.name &&
@@ -18,13 +18,17 @@ function buildAnalysisPrompt(fixtures, odds, date) {
     );
     const oddsStr = matchOdds
       ? `Cotes reelles: 1=${matchOdds.odds.homeWin||'?'} X=${matchOdds.odds.draw||'?'} 2=${matchOdds.odds.awayWin||'?'} O1.5=${matchOdds.odds.over15||'?'} O2.5=${matchOdds.odds.over25||'?'}`
-      : 'Utilise des cotes realistes et conservatives';
+      : 'Pas de cotes disponibles pour ce match';
     return `[${f.league ? f.league.name : 'Ligue'}] ${f.home ? f.home.name : '?'} vs ${f.away ? f.away.name : '?'} | ${oddsStr}`;
   }).join('\n');
 
   const oddsOnly = odds.slice(0, 30).map(o =>
     `${o.homeTeam} vs ${o.awayTeam}: 1=${o.odds.homeWin||'?'} X=${o.odds.draw||'?'} 2=${o.odds.awayWin||'?'} O1.5=${o.odds.over15||'?'} O2.5=${o.odds.over25||'?'}`
   ).join('\n');
+
+  const oddsNote = oddsAvailable
+    ? ''
+    : `\nIMPORTANT - COTES NON DISPONIBLES : Tu ne dois PAS inventer de cotes. Analyse uniquement la forme des equipes, le classement, les enjeux et les statistiques. Pour chaque pick mets odds: 0 et explique dans la justification pourquoi ce match est interessant sans mentionner de cotes.`;
 
   return `Tu es un expert en analyse de paris sportifs football. Date : ${date}.
 
@@ -33,12 +37,16 @@ ${fixturesSummary || 'Donnees non disponibles.'}
 
 COTES EN TEMPS REEL :
 ${oddsOnly || 'Cotes non disponibles.'}
+${oddsNote}
 
-REGLES ABSOLUES :
+${oddsAvailable ? `REGLES ABSOLUES :
 1. Utilise UNIQUEMENT les cotes reelles fournies ci-dessus quand disponibles
-2. Si cotes non disponibles, utilise des cotes REALISTES (jamais inventer des cotes trop hautes)
+2. Si cotes non disponibles pour un match, utilise des cotes REALISTES et CONSERVATIVES
 3. Cotes minimum : BTTS > 1.30, Over 1.5 > 1.25, Over 2.5 > 1.40, Victoire favorite > 1.30
-4. Fournis UNIQUEMENT les cotes individuelles. Le systeme calculera automatiquement la cote totale.
+4. Fournis UNIQUEMENT les cotes individuelles. Le systeme calculera automatiquement la cote totale.` : `REGLES ABSOLUES :
+1. NE PAS inventer de cotes. Mets odds: 0 pour tous les picks.
+2. Base ton analyse sur la forme, le classement, les enjeux et les statistiques uniquement.
+3. Explique clairement pourquoi chaque match est interessant dans la justification.`}
 
 PROTOCOLE : Forme 3 derniers matchs, performance domicile/exterieur, priorite buts/BTTS pour Turquie, Pays-Bas, Allemagne, MLS, Mexique, Bresil, Serie B, Segunda.
 
@@ -53,6 +61,7 @@ Reponds UNIQUEMENT avec JSON valide, sans markdown :
 {
   "date": "${date}",
   "generatedAt": "${new Date().toISOString()}",
+  "oddsAvailable": ${oddsAvailable},
   "tickets": [
     {
       "id": 1,
@@ -72,9 +81,9 @@ Reponds UNIQUEMENT avec JSON valide, sans markdown :
 }`;
 }
 
-async function generateTickets(apiKey, fixtures, odds, date) {
+async function generateTickets(apiKey, fixtures, odds, date, oddsAvailable = true) {
   const client = new Anthropic({ apiKey });
-  const prompt = buildAnalysisPrompt(fixtures, odds, date);
+  const prompt = buildAnalysisPrompt(fixtures, odds, date, oddsAvailable);
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 8000,

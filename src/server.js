@@ -17,8 +17,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// ---- Fonctions principales ----
-
 async function runEveningAnalysis(date) {
   const settings = storage.loadSettings();
   const apiFootball = settings.apiFootballKey || process.env.API_FOOTBALL_KEY;
@@ -31,9 +29,9 @@ async function runEveningAnalysis(date) {
 
   let fixtures = [];
   let oddsData = [];
+  let oddsAvailable = false;
   let usage = storage.loadApiUsage();
 
-  // Recuperation des matchs
   if (apiFootball) {
     try {
       storage.addActivityLog('Recuperation des fixtures via API-Football...', 'info');
@@ -47,11 +45,11 @@ async function runEveningAnalysis(date) {
           await new Promise(r => setTimeout(r, 300));
         } catch (e) {
           enriched.push({
-            fixtureId: f.fixture.id,
-            date: f.fixture.date,
-            league: { id: f.league.id, name: f.league.name, country: f.league.country },
-            home: { id: f.teams.home.id, name: f.teams.home.name },
-            away: { id: f.teams.away.id, name: f.teams.away.name },
+            fixtureId: f.fixtureId || f.id,
+            date: f.date,
+            league: f.league || {},
+            home: f.home || {},
+            away: f.away || {},
             homeForm: [], awayForm: [],
             homeAvgGoals: 0, awayAvgGoals: 0,
             homeAvgConceded: 0, awayAvgConceded: 0,
@@ -60,30 +58,33 @@ async function runEveningAnalysis(date) {
         }
       }
       fixtures = enriched;
-      usage.footballDailyUsed = Math.min(usage.footballDailyUsed + Math.ceil(raw.length / 5) + 1, 100);
+      usage.footballDailyUsed = Math.min(usage.footballDailyUsed + 1, 100);
     } catch (e) {
-      storage.addActivityLog(`Erreur API-Football: ${e.message} - analyse sans donnees externes`, 'warn');
+      storage.addActivityLog(`Erreur API-Football: ${e.message}`, 'warn');
     }
   }
 
-  // Recuperation des cotes
   if (apiOdds) {
     try {
       storage.addActivityLog('Recuperation des cotes via The Odds API...', 'info');
       const { odds, remaining, used } = await getAllOddsForDate(apiOdds, date);
       oddsData = odds.map(extractBestOdds);
       if (used !== null) usage.oddsMonthlyUsed = used;
+      if (oddsData.length > 0) oddsAvailable = true;
       storage.addActivityLog(`${oddsData.length} evenements avec cotes recuperes`, 'info');
     } catch (e) {
-      storage.addActivityLog(`Erreur The Odds API: ${e.message} - cotes non disponibles`, 'warn');
+      storage.addActivityLog(`Cotes non disponibles: ${e.message} - analyse sans cotes`, 'warn');
     }
+  }
+
+  if (!oddsAvailable) {
+    storage.addActivityLog('Analyse sans cotes - Claude analysera forme, classement et enjeux uniquement', 'info');
   }
 
   storage.saveApiUsage(usage);
 
-  // Generation des tickets via Claude
   storage.addActivityLog('Generation des 15 tickets via Claude AI...', 'info');
-  const ticketsData = await generateTickets(apiAnthropic, fixtures, oddsData, date);
+  const ticketsData = await generateTickets(apiAnthropic, fixtures, oddsData, date, oddsAvailable);
   storage.saveTickets(date, ticketsData);
   storage.addActivityLog(`15 tickets generes et sauvegardes pour ${date}`, 'success');
 
@@ -106,14 +107,11 @@ async function runMorningReport(date) {
   return report;
 }
 
-// ---- Routes API ----
-
 app.get('/api/status', (req, res) => {
   const usage = storage.loadApiUsage();
   const settings = storage.loadSettings();
   const latestDate = storage.getLatestDate();
   const now = new Date().toLocaleString('fr-CA', { timeZone: 'America/Toronto' });
-
   res.json({
     status: 'ok',
     currentTime: now,
@@ -209,12 +207,10 @@ app.get('/api/settings', (req, res) => {
   });
 });
 
-// Fallback SPA
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
-// ---- Demarrage ----
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`\n=================================================`);
