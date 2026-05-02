@@ -1,252 +1,307 @@
-<!DOCTYPE html>
-<html lang="fr">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Football Pronostics AI</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/main.css">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2685.4">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Apple Color Emoji'; -webkit-text-stroke: #000000}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Apple Color Emoji'; -webkit-text-stroke: #000000; min-height: 20.0px}
+    span.s1 {font-kerning: none}
+  </style>
 </head>
 <body>
-<div class="app-shell">
-<button class="menu-btn" id="menu-btn">☰</button>
-<div class="sidebar-overlay" id="sidebar-overlay"></div>
-
-  <nav class="sidebar">
-    <div class="sidebar-logo">
-      <span class="logo-icon">⚽</span>
-      <span class="logo-text">PronosAI</span>
-    </div>
-    <ul class="nav-links">
-      <li><a href="#" class="nav-link active" data-tab="dashboard">
-        <span class="nav-icon">◉</span> Tableau de bord
-      </a></li>
-      <li><a href="#" class="nav-link" data-tab="tickets">
-        <span class="nav-icon">◈</span> Tickets du jour
-      </a></li>
-      <li><a href="#" class="nav-link" data-tab="historique">
-        <span class="nav-icon">◫</span> Historique
-      </a></li>
-      <li><a href="#" class="nav-link" data-tab="config">
-        <span class="nav-icon">◧</span> Configuration
-      </a></li>
-    </ul>
-    <div class="sidebar-clock">
-      <div class="clock-label">Heure ET</div>
-      <div class="clock-time" id="sidebar-clock">--:--:--</div>
-    </div>
-  </nav>
-
-  <main class="main-content">
-
-    <!-- DASHBOARD -->
-    <section id="tab-dashboard" class="tab-section active">
-      <div class="page-header">
-        <h1>Tableau de bord</h1>
-        <div class="header-actions">
-          <button class="btn btn-secondary" onclick="refreshDashboard()">Actualiser</button>
-          <button class="btn btn-primary" onclick="openAnalyzeModal()">Lancer une analyse ↗</button>
-        </div>
-      </div>
-
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">Prochaine analyse</div>
-          <div class="stat-value" id="next-analysis">20h00</div>
-          <div class="stat-sub" id="next-analysis-in">--</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Taux de reussite</div>
-          <div class="stat-value" id="win-rate">--</div>
-          <div class="stat-sub">sur les 30 derniers jours</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">API Football</div>
-          <div class="stat-value" id="api-football-remaining">--</div>
-          <div class="stat-sub">requetes restantes aujourd'hui</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">The Odds API</div>
-          <div class="stat-value" id="api-odds-remaining">--</div>
-          <div class="stat-sub">requetes restantes ce mois</div>
-        </div>
-      </div>
-
-      <div class="config-alert" id="config-alert" style="display:none;">
-        <div class="alert-icon">!</div>
-        <div class="alert-text">
-          <strong>Configuration incomplète.</strong> Rendez-vous dans l'onglet Configuration pour renseigner vos cles API avant de lancer une analyse.
-        </div>
-        <a href="#" class="btn btn-small btn-secondary" onclick="switchTab('config'); return false;">Configurer</a>
-      </div>
-
-      <div class="two-col">
-        <div class="panel">
-          <div class="panel-title">Journal d'activite</div>
-          <div id="activity-log" class="log-list">
-            <div class="log-empty">Chargement...</div>
-          </div>
-        </div>
-        <div class="panel">
-          <div class="panel-title">Dernier rapport de performance</div>
-          <div id="latest-report">
-            <div class="empty-state">Aucun rapport disponible.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TICKETS -->
-    <section id="tab-tickets" class="tab-section">
-      <div class="page-header">
-        <div>
-          <h1>Tickets du jour</h1>
-          <div class="page-sub" id="tickets-date-label">Chargement...</div>
-        </div>
-        <div class="header-actions">
-          <input type="date" id="tickets-date-picker" class="date-picker" onchange="loadTicketsForDate(this.value)">
-          <button class="btn btn-primary" onclick="openAnalyzeModal()">Nouvelle analyse ↗</button>
-        </div>
-      </div>
-
-      <div class="ticket-filters">
-        <button class="filter-btn active" data-filter="all" onclick="filterTickets('all', this)">Tous (15)</button>
-        <button class="filter-btn" data-filter="Haute Performance" onclick="filterTickets('Haute Performance', this)">Haute Performance (5)</button>
-        <button class="filter-btn" data-filter="Securite" onclick="filterTickets('Securite', this)">Securite (5)</button>
-        <button class="filter-btn" data-filter="Securite et Haute Performance" onclick="filterTickets('Securite et Haute Performance', this)">Securite + HP (5)</button>
-      </div>
-
-      <div id="tickets-container">
-        <div class="empty-state">
-          <div class="empty-icon">⚽</div>
-          <p>Aucun ticket disponible pour cette date.<br>Lancez une analyse pour generer les 15 tickets.</p>
-          <button class="btn btn-primary" onclick="openAnalyzeModal()">Lancer l'analyse</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- HISTORIQUE -->
-    <section id="tab-historique" class="tab-section">
-      <div class="page-header">
-        <h1>Historique</h1>
-      </div>
-      <div id="history-container">
-        <div class="empty-state">Chargement de l'historique...</div>
-      </div>
-    </section>
-
-    <!-- CONFIG -->
-    <section id="tab-config" class="tab-section">
-      <div class="page-header">
-        <h1>Configuration</h1>
-      </div>
-
-      <div class="config-grid">
-        <div class="panel">
-          <div class="panel-title">Cles API</div>
-          <div class="form-group">
-            <label>API-Football (RapidAPI)</label>
-            <div class="input-with-badge">
-              <input type="password" id="cfg-football" placeholder="Coller votre cle ici" autocomplete="off">
-              <span class="free-badge">100 req/jour gratuit</span>
-            </div>
-            <div class="field-help">
-              Inscription : <a href="https://rapidapi.com/api-sports/api/api-football" target="_blank">rapidapi.com → api-football → plan Free</a>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>The Odds API</label>
-            <div class="input-with-badge">
-              <input type="password" id="cfg-odds" placeholder="Coller votre cle ici" autocomplete="off">
-              <span class="free-badge">500 req/mois gratuit</span>
-            </div>
-            <div class="field-help">
-              Inscription : <a href="https://the-odds-api.com" target="_blank">the-odds-api.com → plan Free</a>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Anthropic Claude API <span class="required-badge">Requis</span></label>
-            <input type="password" id="cfg-anthropic" placeholder="sk-ant-..." autocomplete="off">
-            <div class="field-help">
-              Disponible via : <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com/settings/keys</a>
-            </div>
-          </div>
-          <button class="btn btn-primary" onclick="saveSettings()">Sauvegarder les cles</button>
-          <div id="settings-feedback" class="feedback-msg"></div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-title">Consommation API</div>
-          <div class="usage-item">
-            <div class="usage-header">
-              <span>API-Football (quotidien)</span>
-              <span id="usage-football">-- / 100</span>
-            </div>
-            <div class="usage-bar"><div class="usage-fill" id="bar-football" style="width:0%"></div></div>
-          </div>
-          <div class="usage-item">
-            <div class="usage-header">
-              <span>The Odds API (mensuel)</span>
-              <span id="usage-odds">-- / 500</span>
-            </div>
-            <div class="usage-bar"><div class="usage-fill" id="bar-odds" style="width:0%"></div></div>
-          </div>
-
-          <div class="panel-title" style="margin-top:1.5rem;">Automatisation</div>
-          <div class="schedule-info">
-            <div class="schedule-row">
-              <span class="schedule-label">Analyse du soir</span>
-              <span class="schedule-value">20h00 ET (chaque jour)</span>
-            </div>
-            <div class="schedule-row">
-              <span class="schedule-label">Rapport du matin</span>
-              <span class="schedule-value">07h00 ET (chaque jour)</span>
-            </div>
-            <div class="schedule-row">
-              <span class="schedule-label">Tickets par analyse</span>
-              <span class="schedule-value">15 (5 HP + 5 SEC + 5 SEC+HP)</span>
-            </div>
-          </div>
-
-          <div class="panel-title" style="margin-top:1.5rem;">Rapport manuel</div>
-          <div class="form-group">
-            <label>Generer le rapport pour la date</label>
-            <input type="date" id="report-date" class="date-picker-inline">
-          </div>
-          <button class="btn btn-secondary" onclick="launchReport()">Generer le rapport</button>
-        </div>
-      </div>
-    </section>
-
-  </main>
-</div>
-
-<!-- MODAL ANALYSE -->
-<div id="analyze-modal" class="modal-overlay" style="display:none;">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>Lancer une analyse</h2>
-      <button class="modal-close" onclick="closeAnalyzeModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label>Date des matchs a analyser</label>
-        <input type="date" id="analyze-date" class="date-picker-inline">
-      </div>
-      <div id="analyze-progress" style="display:none;">
-        <div class="progress-label" id="progress-msg">Initialisation...</div>
-        <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-      </div>
-      <div id="analyze-result" class="feedback-msg"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeAnalyzeModal()">Annuler</button>
-      <button class="btn btn-primary" id="analyze-btn" onclick="launchAnalysis()">Lancer l'analyse</button>
-    </div>
-  </div>
-</div>
-
-<script src="/js/app.js"></script>
+<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
+<p class="p1"><span class="s1">&lt;html lang="fr"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;head&gt;</span></p>
+<p class="p1"><span class="s1">&lt;meta charset="UTF-8"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;title&gt;Football Pronostics AI&lt;/title&gt;</span></p>
+<p class="p1"><span class="s1">&lt;link rel="preconnect" href="https://fonts.googleapis.com"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=Syne:wght@400;500;700&amp;display=swap" rel="stylesheet"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;link rel="stylesheet" href="/css/main.css"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
+<p class="p1"><span class="s1">&lt;body&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div class="app-shell"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;button class="menu-btn" id="menu-btn"&gt;☰&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div class="sidebar-overlay" id="sidebar-overlay"&gt;&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;nav class="sidebar"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="sidebar-logo"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;span class="logo-icon"&gt;⚽&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;span class="logo-text"&gt;PronosAI&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;ul class="nav-links"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;li&gt;&lt;a href="#" class="nav-link active" data-tab="dashboard"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span class="nav-icon"&gt;◉&lt;/span&gt; Tableau de bord</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/a&gt;&lt;/li&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;li&gt;&lt;a href="#" class="nav-link" data-tab="tickets"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span class="nav-icon"&gt;◈&lt;/span&gt; Tickets du jour</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/a&gt;&lt;/li&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;li&gt;&lt;a href="#" class="nav-link" data-tab="manuel"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span class="nav-icon"&gt;◱&lt;/span&gt; Analyse manuelle</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/a&gt;&lt;/li&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;li&gt;&lt;a href="#" class="nav-link" data-tab="historique"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span class="nav-icon"&gt;◫&lt;/span&gt; Historique</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/a&gt;&lt;/li&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;li&gt;&lt;a href="#" class="nav-link" data-tab="config"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;span class="nav-icon"&gt;◧&lt;/span&gt; Configuration</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/a&gt;&lt;/li&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/ul&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="sidebar-clock"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="clock-label"&gt;Heure ET&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="clock-time" id="sidebar-clock"&gt;--:--:--&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/nav&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;main class="main-content"&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;!-- DASHBOARD --&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;section id="tab-dashboard" class="tab-section active"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="page-header"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;h1&gt;Tableau de bord&lt;/h1&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="header-actions"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;button class="btn btn-secondary" onclick="refreshDashboard()"&gt;Actualiser&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;button class="btn btn-primary" onclick="openAnalyzeModal()"&gt;Lancer une analyse ↗&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="stats-grid"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="stat-card"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="stat-label"&gt;Prochaine analyse&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="stat-value" id="next-analysis"&gt;20h00&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="stat-sub" id="next-analysis-in"&gt;--&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="stat-card"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="stat-label"&gt;Taux de reussite&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="stat-value" id="win-rate"&gt;--&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="stat-sub"&gt;sur les 30 derniers jours&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="stat-card"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="stat-label"&gt;API Football&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="stat-value" id="api-football-remaining"&gt;--&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="stat-sub"&gt;requetes restantes aujourd'hui&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="stat-card"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="stat-label"&gt;The Odds API&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="stat-value" id="api-odds-remaining"&gt;--&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="stat-sub"&gt;requetes restantes ce mois&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="config-alert" id="config-alert" style="display:none;"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="alert-icon"&gt;!&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="alert-text"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;strong&gt;Configuration incomplete.&lt;/strong&gt; Rendez-vous dans Configuration pour renseigner vos cles API.</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;a href="#" class="btn btn-small btn-secondary" onclick="switchTab('config'); return false;"&gt;Configurer&lt;/a&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="two-col"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="panel"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="panel-title"&gt;Journal d'activite&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div id="activity-log" class="log-list"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="log-empty"&gt;Chargement...&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="panel"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="panel-title"&gt;Dernier rapport de performance&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div id="latest-report"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="empty-state"&gt;Aucun rapport disponible.&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/section&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;!-- TICKETS --&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;section id="tab-tickets" class="tab-section"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="page-header"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;h1&gt;Tickets du jour&lt;/h1&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="page-sub" id="tickets-date-label"&gt;Chargement...&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="header-actions"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;input type="date" id="tickets-date-picker" class="date-picker" onchange="loadTicketsForDate(this.value)"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;button class="btn btn-primary" onclick="openAnalyzeModal()"&gt;Nouvelle analyse ↗&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="ticket-filters"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;button class="filter-btn active" data-filter="all" onclick="filterTickets('all', this)"&gt;Tous (15)&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;button class="filter-btn" data-filter="Haute Performance" onclick="filterTickets('Haute Performance', this)"&gt;Haute Performance (5)&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;button class="filter-btn" data-filter="Securite" onclick="filterTickets('Securite', this)"&gt;Securite (5)&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;button class="filter-btn" data-filter="Securite et Haute Performance" onclick="filterTickets('Securite et Haute Performance', this)"&gt;Securite + HP (5)&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div id="tickets-container"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="empty-state"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="empty-icon"&gt;⚽&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;p&gt;Aucun ticket disponible pour cette date.&lt;br&gt;Lancez une analyse pour generer les 15 tickets.&lt;/p&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;button class="btn btn-primary" onclick="openAnalyzeModal()"&gt;Lancer l'analyse&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/section&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;!-- ANALYSE MANUELLE --&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;section id="tab-manuel" class="tab-section"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="page-header"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;h1&gt;Analyse manuelle&lt;/h1&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="panel" style="margin-bottom:16px;"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="panel-title"&gt;Uploader vos fichiers&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="form-group"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;label&gt;Date des matchs&lt;/label&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;input type="date" id="manuel-date" class="date-picker-inline"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="form-group"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;label&gt;Fichiers (max 20 : screenshots Bet365, classements Aiscore, PDFs)&lt;/label&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div id="drop-zone" onclick="document.getElementById('file-input').click()" style="border:2px dashed var(--border-strong);border-radius:var(--radius-lg);padding:2rem;text-align:center;cursor:pointer;color:var(--text-muted);margin-bottom:12px;"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div style="font-size:28px;margin-bottom:8px;"&gt;📁&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div&gt;Cliquer pour selectionner ou glisser-deposer&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div style="font-size:11px;margin-top:4px;"&gt;JPG, PNG, PDF acceptes - max 20 fichiers&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;input type="file" id="file-input" multiple accept=".jpg,.jpeg,.png,.gif,.webp,.pdf" style="display:none" onchange="handleFileSelect(this.files)"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div id="file-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="form-group"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;label&gt;Notes supplementaires (optionnel)&lt;/label&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;textarea id="manuel-notes" style="width:100%;background:var(--bg-surface);border:1px solid var(--border-strong);border-radius:var(--radius);color:var(--text-primary);padding:9px 12px;font-size:13px;font-family:var(--font-mono);min-height:80px;resize:vertical;" placeholder="Blessures importantes, absences, contexte supplementaire..."&gt;&lt;/textarea&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div id="manuel-progress" style="display:none;margin-bottom:12px;"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="progress-label" id="manuel-progress-msg"&gt;Analyse en cours...&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="progress-track"&gt;&lt;div class="progress-fill" id="manuel-progress-fill" style="width:0%"&gt;&lt;/div&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div id="manuel-result" class="feedback-msg"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;button class="btn btn-primary" onclick="launchManualAnalysis()" id="manuel-btn"&gt;Analyser et generer les 15 tickets ↗&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/section&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;!-- HISTORIQUE --&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;section id="tab-historique" class="tab-section"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="page-header"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;h1&gt;Historique&lt;/h1&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div id="history-container"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="empty-state"&gt;Chargement de l'historique...&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/section&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;!-- CONFIG --&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;section id="tab-config" class="tab-section"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="page-header"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;h1&gt;Configuration&lt;/h1&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="config-grid"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="panel"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="panel-title"&gt;Cles API&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="form-group"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;label&gt;API-Football (RapidAPI)&lt;/label&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="input-with-badge"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;input type="password" id="cfg-football" placeholder="Coller votre cle ici" autocomplete="off"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;span class="free-badge"&gt;100 req/jour gratuit&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="field-help"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>Inscription : &lt;a href="https://rapidapi.com/api-sports/api/api-football" target="_blank"&gt;rapidapi.com → api-football → plan Free&lt;/a&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="form-group"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;label&gt;The Odds API&lt;/label&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="input-with-badge"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;input type="password" id="cfg-odds" placeholder="Coller votre cle ici" autocomplete="off"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;span class="free-badge"&gt;500 req/mois gratuit&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="field-help"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>Inscription : &lt;a href="https://the-odds-api.com" target="_blank"&gt;the-odds-api.com → plan Free&lt;/a&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="form-group"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;label&gt;Anthropic Claude API &lt;span class="required-badge"&gt;Requis&lt;/span&gt;&lt;/label&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;input type="password" id="cfg-anthropic" placeholder="sk-ant-..." autocomplete="off"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="field-help"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>Disponible via : &lt;a href="https://console.anthropic.com/settings/keys" target="_blank"&gt;console.anthropic.com/settings/keys&lt;/a&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;button class="btn btn-primary" onclick="saveSettings()"&gt;Sauvegarder les cles&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div id="settings-feedback" class="feedback-msg"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="panel"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="panel-title"&gt;Consommation API&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="usage-item"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="usage-header"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;span&gt;API-Football (quotidien)&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;span id="usage-football"&gt;-- / 100&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="usage-bar"&gt;&lt;div class="usage-fill" id="bar-football" style="width:0%"&gt;&lt;/div&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="usage-item"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="usage-header"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;span&gt;The Odds API (mensuel)&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;span id="usage-odds"&gt;-- / 500&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="usage-bar"&gt;&lt;div class="usage-fill" id="bar-odds" style="width:0%"&gt;&lt;/div&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="panel-title" style="margin-top:1.5rem;"&gt;Automatisation&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="schedule-info"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="schedule-row"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;span class="schedule-label"&gt;Analyse du soir&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;span class="schedule-value"&gt;20h00 ET (chaque jour)&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="schedule-row"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;span class="schedule-label"&gt;Rapport du matin&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;span class="schedule-value"&gt;07h00 ET (chaque jour)&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="schedule-row"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;span class="schedule-label"&gt;Tickets par analyse&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">              </span>&lt;span class="schedule-value"&gt;15 (5 HP + 5 SEC + 5 SEC+HP)&lt;/span&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="panel-title" style="margin-top:1.5rem;"&gt;Rapport manuel&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="form-group"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;label&gt;Generer le rapport pour la date&lt;/label&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;input type="date" id="report-date" class="date-picker-inline"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;button class="btn btn-secondary" onclick="launchReport()"&gt;Generer le rapport&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/section&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/main&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;!-- MODAL ANALYSE --&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div id="analyze-modal" class="modal-overlay" style="display:none;"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="modal"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="modal-header"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;h2&gt;Lancer une analyse&lt;/h2&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;button class="modal-close" onclick="closeAnalyzeModal()"&gt;×&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="modal-body"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="form-group"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;label&gt;Date des matchs a analyser&lt;/label&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;input type="date" id="analyze-date" class="date-picker-inline"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div id="analyze-progress" style="display:none;"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="progress-label" id="progress-msg"&gt;Initialisation...&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="progress-track"&gt;&lt;div class="progress-fill" id="progress-fill" style="width:0%"&gt;&lt;/div&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div id="analyze-result" class="feedback-msg"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="modal-footer"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;button class="btn btn-secondary" onclick="closeAnalyzeModal()"&gt;Annuler&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;button class="btn btn-primary" id="analyze-btn" onclick="launchAnalysis()"&gt;Lancer l'analyse&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;script src="/js/app.js"&gt;&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
 </body>
 </html>

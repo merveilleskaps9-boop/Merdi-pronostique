@@ -6,11 +6,13 @@ process.env.TZ = 'America/Toronto';
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const Anthropic = require('@anthropic-ai/sdk');
 const storage = require('./storage');
 const scheduler = require('./scheduler');
 const { getFixturesForTargetLeagues, enrichFixtureWithStats } = require('./apiFootball');
 const { getAllOddsForDate, extractBestOdds } = require('./apiOdds');
 const { generateTickets, generateMorningReport } = require('./analyzer');
+const { upload, extractTextFromPDF, fileToBase64, getMimeType, cleanupFiles } = require('./uploadHandler');
 
 const app = express();
 app.use(cors());
@@ -36,28 +38,8 @@ async function runEveningAnalysis(date) {
     try {
       storage.addActivityLog('Recuperation des fixtures via API-Football...', 'info');
       const raw = await getFixturesForTargetLeagues(apiFootball, date);
-      storage.addActivityLog(`${raw.length} matchs trouves, enrichissement des stats...`, 'info');
-      const enriched = [];
-      for (const f of raw.slice(0, 30)) {
-        try {
-          const enrichedF = await enrichFixtureWithStats(apiFootball, f);
-          enriched.push(enrichedF);
-          await new Promise(r => setTimeout(r, 300));
-        } catch (e) {
-          enriched.push({
-            fixtureId: f.fixtureId || f.id,
-            date: f.date,
-            league: f.league || {},
-            home: f.home || {},
-            away: f.away || {},
-            homeForm: [], awayForm: [],
-            homeAvgGoals: 0, awayAvgGoals: 0,
-            homeAvgConceded: 0, awayAvgConceded: 0,
-            isPriorityGoals: false, status: 'NS'
-          });
-        }
-      }
-      fixtures = enriched;
+      storage.addActivityLog(`${raw.length} matchs trouves`, 'info');
+      fixtures = raw.slice(0, 30);
       usage.footballDailyUsed = Math.min(usage.footballDailyUsed + 1, 100);
     } catch (e) {
       storage.addActivityLog(`Erreur API-Football: ${e.message}`, 'warn');
@@ -73,21 +55,19 @@ async function runEveningAnalysis(date) {
       if (oddsData.length > 0) oddsAvailable = true;
       storage.addActivityLog(`${oddsData.length} evenements avec cotes recuperes`, 'info');
     } catch (e) {
-      storage.addActivityLog(`Cotes non disponibles: ${e.message} - analyse sans cotes`, 'warn');
+      storage.addActivityLog(`Cotes non disponibles: ${e.message}`, 'warn');
     }
   }
 
   if (!oddsAvailable) {
-    storage.addActivityLog('Analyse sans cotes - Claude analysera forme, classement et enjeux uniquement', 'info');
+    storage.addActivityLog('Analyse sans cotes - Claude analysera forme et enjeux uniquement', 'info');
   }
 
   storage.saveApiUsage(usage);
-
   storage.addActivityLog('Generation des 15 tickets via Claude AI...', 'info');
   const ticketsData = await generateTickets(apiAnthropic, fixtures, oddsData, date, oddsAvailable);
   storage.saveTickets(date, ticketsData);
   storage.addActivityLog(`15 tickets generes et sauvegardes pour ${date}`, 'success');
-
   return ticketsData;
 }
 
@@ -95,29 +75,149 @@ async function runMorningReport(date) {
   const settings = storage.loadSettings();
   const apiAnthropic = settings.anthropicKey || process.env.ANTHROPIC_API_KEY;
   if (!apiAnthropic) throw new Error('Cle Anthropic manquante');
-
   const tickets = storage.loadTickets(date);
   if (!tickets) throw new Error(`Aucun ticket trouve pour ${date}`);
-
   storage.addActivityLog(`Debut rapport du matin pour ${date}`, 'info');
   const report = await generateMorningReport(apiAnthropic, tickets.tickets || [], []);
   storage.saveReport(date, report);
   storage.addActivityLog(`Rapport du matin genere pour ${date}`, 'success');
-
   return report;
 }
 
+// ---- Route analyse manuelle avec images et PDFs ----
+app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
+  const files = req.files || [];
+  const { date, notes } = req.body;
+
+  if (!date) {
+    cleanupFiles(files);
+    return res.status(400).json({ error: 'Date requise' });
+  }
+
+  const settings = storage.loadSettings();
+  const apiAnthropic = settings.anthropicKey || process.env.ANTHROPIC_API_KEY;
+  if (!apiAnthropic) {
+    cleanupFiles(files);
+    return res.status(400).json({ error: 'Cle Anthropic manquante' });
+  }
+
+  res.json({ message: 'Analyse manuelle lancee en arriere-plan', date });
+
+  (async () => {
+    try {
+      storage.addActivityLog(`Analyse manuelle avec ${files.length} fichier(s) pour ${date}`, 'info');
+
+      const messageContent = [];
+      let pdfTexts = '';
+
+      for (const file of files) {
+        const ext = path.extname(file.path).toLowerCase();
+        if (ext === '.pdf') {
+          const text = await extractTextFromPDF(file.path);
+          pdfTexts += `\n--- PDF: ${file.originalname} ---\n${text}\n`;
+        } else {
+          const base64 = fileToBase64(file.path);
+          const mimeType = getMimeType(file.path);
+          messageContent.push({
+            type: 'image',
+            source: { type: 'base64', media_type: mimeType, data: base64 }
+          });
+        }
+      }
+
+      let textPrompt = `Tu es un expert en analyse de paris sportifs football. Date d'analyse : ${date}.
+
+Tu as recu des captures d'ecran et/ou des PDFs contenant des matchs, des cotes et des statistiques de football.
+
+INSTRUCTIONS :
+1. Analyse TOUTES les images et donnees fournies
+2. Extrais les matchs avec leurs equipes, les cotes disponibles et les statistiques
+3. Utilise UNIQUEMENT les cotes que tu vois dans les images, ne les invente pas
+4. Si tu vois des classements ou statistiques, utilise-les pour ta justification
+5. Applique le protocole complet : forme, domicile/exterieur, enjeux, priorite buts/BTTS pour Turquie/Pays-Bas/Allemagne/MLS/Mexique/Bresil/Serie B/Segunda`;
+
+      if (pdfTexts) {
+        textPrompt += `\n\nCONTENU DES PDFs :\n${pdfTexts}`;
+      }
+
+      if (notes) {
+        textPrompt += `\n\nNOTES SUPPLEMENTAIRES :\n${notes}`;
+      }
+
+      textPrompt += `\n\nGENERE EXACTEMENT 15 TICKETS :
+- 5 "Haute Performance" : 4 a 6 matchs
+- 5 "Securite" : 4 a 6 matchs
+- 5 "Securite et Haute Performance" : 4 a 8 matchs, max 3 picks par match
+
+Evite de repeter les memes matchs entre tickets.
+
+Reponds UNIQUEMENT avec JSON valide, sans markdown :
+{
+  "date": "${date}",
+  "generatedAt": "${new Date().toISOString()}",
+  "source": "manuel",
+  "tickets": [
+    {
+      "id": 1,
+      "type": "Haute Performance",
+      "raisonnement": "Explication courte",
+      "picks": [
+        {
+          "match": "Equipe A vs Equipe B",
+          "league": "Nom championnat",
+          "market": "Plus de 1.5 buts",
+          "odds": 1.35,
+          "justification": "Raison courte"
+        }
+      ]
+    }
+  ]
+}`;
+
+      messageContent.push({ type: 'text', text: textPrompt });
+
+      const client = new Anthropic({ apiKey: apiAnthropic });
+      const message = await client.messages.create({
+        model: 'claude-opus-4-5',
+        max_tokens: 8000,
+        messages: [{ role: 'user', content: messageContent }]
+      });
+
+      const rawText = message.content[0].text;
+      let jsonText = rawText.trim();
+      if (jsonText.startsWith('```')) {
+        jsonText = jsonText.replace(/^```[a-z]*\n?/, '').replace(/\n?```$/, '').trim();
+      }
+
+      const parsed = JSON.parse(jsonText);
+      if (parsed.tickets) {
+        parsed.tickets = parsed.tickets.map(ticket => {
+          const totalOdds = Math.round(
+            (ticket.picks || []).reduce((acc, p) => acc * (parseFloat(p.odds) || 1), 1) * 100
+          ) / 100;
+          return { ...ticket, totalOdds };
+        });
+      }
+
+      storage.saveTickets(date, parsed);
+      storage.addActivityLog(`15 tickets generes depuis fichiers manuels pour ${date}`, 'success');
+    } catch (e) {
+      storage.addActivityLog(`Erreur analyse manuelle: ${e.message}`, 'error');
+    } finally {
+      cleanupFiles(files);
+    }
+  })();
+});
+
+// ---- Routes API standard ----
 app.get('/api/status', (req, res) => {
   const usage = storage.loadApiUsage();
   const settings = storage.loadSettings();
   const latestDate = storage.getLatestDate();
   const now = new Date().toLocaleString('fr-CA', { timeZone: 'America/Toronto' });
   res.json({
-    status: 'ok',
-    currentTime: now,
-    timezone: 'America/Toronto',
-    latestAnalysis: latestDate,
-    apiUsage: usage,
+    status: 'ok', currentTime: now, timezone: 'America/Toronto',
+    latestAnalysis: latestDate, apiUsage: usage,
     configured: {
       apiFootball: !!(settings.apiFootballKey || process.env.API_FOOTBALL_KEY),
       apiOdds: !!(settings.apiOddsKey || process.env.ODDS_API_KEY),
@@ -166,11 +266,11 @@ app.get('/api/logs', (req, res) => {
 
 app.post('/api/analyze', async (req, res) => {
   const { date } = req.body;
-  if (!date) return res.status(400).json({ error: 'Date requise (YYYY-MM-DD)' });
-  storage.addActivityLog(`Analyse manuelle lancee pour ${date}`, 'info');
+  if (!date) return res.status(400).json({ error: 'Date requise' });
+  storage.addActivityLog(`Analyse automatique lancee pour ${date}`, 'info');
   res.json({ message: 'Analyse lancee en arriere-plan', date });
   runEveningAnalysis(date).catch(err => {
-    storage.addActivityLog(`Erreur analyse manuelle: ${err.message}`, 'error');
+    storage.addActivityLog(`Erreur analyse: ${err.message}`, 'error');
   });
 });
 
@@ -179,7 +279,7 @@ app.post('/api/report', async (req, res) => {
   if (!date) return res.status(400).json({ error: 'Date requise' });
   res.json({ message: 'Rapport lance en arriere-plan', date });
   runMorningReport(date).catch(err => {
-    storage.addActivityLog(`Erreur rapport manuel: ${err.message}`, 'error');
+    storage.addActivityLog(`Erreur rapport: ${err.message}`, 'error');
   });
 });
 

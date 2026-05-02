@@ -1,5 +1,15 @@
 [
   {
+    "timestamp": "2026-05-02T15:23:48.414Z",
+    "type": "success",
+    "message": "Scheduleur initialise (20h00 analyse, 07h00 rapport)"
+  },
+  {
+    "timestamp": "2026-05-02T15:23:48.362Z",
+    "type": "success",
+    "message": "Serveur demarre sur le port 3000"
+  },
+  {
     "timestamp": "2026-05-02T14:50:08.345Z",
     "type": "success",
     "message": "Scheduleur initialise (20h00 analyse, 07h00 rapport)"

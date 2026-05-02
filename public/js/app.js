@@ -3,15 +3,18 @@
 let allTickets = [];
 let currentFilter = 'all';
 let autoCloseTimer = null;
+let selectedFiles = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   initNav();
   initSidebar();
   initClock();
+  initDropZone();
   refreshDashboard();
   const today = new Date().toISOString().slice(0, 10);
   document.getElementById('tickets-date-picker').value = today;
   document.getElementById('analyze-date').value = today;
+  document.getElementById('manuel-date').value = today;
   const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
   document.getElementById('report-date').value = yesterday;
   loadTicketsForDate(today);
@@ -20,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(refreshDashboard, 30000);
 });
 
+// ---- Sidebar mobile ----
 function initSidebar() {
   const menuBtn = document.getElementById('menu-btn');
   const sidebar = document.querySelector('.sidebar');
@@ -47,6 +51,7 @@ function initSidebar() {
   });
 }
 
+// ---- Nav ----
 function initNav() {
   document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', e => {
@@ -63,6 +68,7 @@ function switchTab(name) {
   document.querySelector(`[data-tab="${name}"]`).classList.add('active');
 }
 
+// ---- Clock ----
 function initClock() {
   function update() {
     const now = new Date();
@@ -73,6 +79,127 @@ function initClock() {
   setInterval(update, 1000);
 }
 
+// ---- Drop zone fichiers ----
+function initDropZone() {
+  const dropZone = document.getElementById('drop-zone');
+  if (!dropZone) return;
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.style.borderColor = 'var(--accent)';
+  });
+
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.style.borderColor = 'var(--border-strong)';
+  });
+
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.style.borderColor = 'var(--border-strong)';
+    handleFileSelect(e.dataTransfer.files);
+  });
+}
+
+function handleFileSelect(files) {
+  const newFiles = Array.from(files);
+  const combined = [...selectedFiles, ...newFiles].slice(0, 20);
+  selectedFiles = combined;
+  renderFilePreview();
+}
+
+function renderFilePreview() {
+  const preview = document.getElementById('file-preview');
+  if (!preview) return;
+  if (!selectedFiles.length) { preview.innerHTML = ''; return; }
+  preview.innerHTML = selectedFiles.map((f, i) => {
+    const isImg = f.type.startsWith('image/');
+    const isPdf = f.type === 'application/pdf';
+    const icon = isPdf ? '📄' : '🖼️';
+    const name = f.name.length > 20 ? f.name.slice(0, 17) + '...' : f.name;
+    return `<div style="position:relative;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:6px;">
+      <span>${icon}</span><span>${escHtml(name)}</span>
+      <button onclick="removeFile(${i})" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;line-height:1;margin-left:4px;">×</button>
+    </div>`;
+  }).join('');
+  const count = document.getElementById('drop-zone');
+  if (count) count.querySelector('div:nth-child(2)').textContent = `${selectedFiles.length} fichier(s) selectionne(s) - Cliquer pour en ajouter`;
+}
+
+function removeFile(index) {
+  selectedFiles.splice(index, 1);
+  renderFilePreview();
+}
+
+async function launchManualAnalysis() {
+  const date = document.getElementById('manuel-date').value;
+  if (!date) { alert('Selectionnez une date.'); return; }
+  if (!selectedFiles.length) { alert('Ajoutez au moins un fichier (screenshot ou PDF).'); return; }
+
+  const btn = document.getElementById('manuel-btn');
+  const progress = document.getElementById('manuel-progress');
+  const fill = document.getElementById('manuel-progress-fill');
+  const msg = document.getElementById('manuel-progress-msg');
+  const result = document.getElementById('manuel-result');
+
+  btn.disabled = true;
+  btn.textContent = 'Analyse en cours...';
+  progress.style.display = 'block';
+  result.textContent = '';
+
+  const steps = [
+    [15, 'Preparation des fichiers...'],
+    [35, 'Envoi vers Claude AI...'],
+    [60, 'Lecture des images et PDFs...'],
+    [80, 'Generation des 15 tickets...'],
+    [100, 'Finalisation...']
+  ];
+
+  let stepIdx = 0;
+  const interval = setInterval(() => {
+    if (stepIdx < steps.length) {
+      fill.style.width = steps[stepIdx][0] + '%';
+      msg.textContent = steps[stepIdx][1];
+      stepIdx++;
+    }
+  }, 2000);
+
+  try {
+    const formData = new FormData();
+    formData.append('date', date);
+    const notes = document.getElementById('manuel-notes').value;
+    if (notes) formData.append('notes', notes);
+    selectedFiles.forEach(f => formData.append('files', f));
+
+    const res = await fetch('/api/analyze-manual', { method: 'POST', body: formData });
+    clearInterval(interval);
+
+    if (res.ok) {
+      fill.style.width = '100%';
+      msg.textContent = 'Analyse lancee avec succes !';
+      result.className = 'feedback-msg feedback-ok';
+      result.textContent = 'Les tickets sont en cours de generation. Verifiez dans 30 secondes dans "Tickets du jour".';
+      setTimeout(() => {
+        document.getElementById('tickets-date-picker').value = date;
+        loadTicketsForDate(date);
+        switchTab('tickets');
+        setTimeout(() => loadTicketsForDate(date), 30000);
+      }, 3000);
+      selectedFiles = [];
+      renderFilePreview();
+      document.getElementById('manuel-notes').value = '';
+    } else {
+      throw new Error('Erreur serveur');
+    }
+  } catch (e) {
+    clearInterval(interval);
+    result.className = 'feedback-msg feedback-err';
+    result.textContent = 'Erreur : ' + e.message;
+    btn.disabled = false;
+    btn.textContent = 'Analyser et generer les 15 tickets ↗';
+  }
+}
+
+// ---- Dashboard ----
 async function refreshDashboard() {
   try {
     const status = await fetch('/api/status').then(r => r.json());
@@ -198,7 +325,7 @@ function renderTicketCard(ticket) {
     <div class="ticket-card">
       <div class="ticket-head">
         <div>
-          <div class="ticket-number">Ticket #${ticket.id}</div>
+          <div class="ticket-number">Ticket #${ticket.id}${ticket.source === 'manuel' ? ' 📁' : ''}</div>
           <div class="ticket-type-label ${typeClass}">${escHtml(ticket.type)}</div>
         </div>
         <div>
@@ -281,9 +408,7 @@ async function saveSettings() {
       loadSettings();
       refreshDashboard();
       setTimeout(() => { fb.textContent = ''; }, 4000);
-    } else {
-      fb.className='feedback-msg feedback-err'; fb.textContent='Erreur.';
-    }
+    } else { fb.className='feedback-msg feedback-err'; fb.textContent='Erreur.'; }
   } catch (e) { fb.className='feedback-msg feedback-err'; fb.textContent='Erreur reseau.'; }
 }
 
@@ -355,6 +480,6 @@ function escHtml(str) {
 }
 
 function formatOdds(val) {
-  if (!val) return '--';
+  if (!val || val === 0) return '--';
   return parseFloat(val).toFixed(2);
 }
