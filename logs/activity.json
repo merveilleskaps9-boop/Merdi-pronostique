@@ -1,5 +1,50 @@
 [
   {
+    "timestamp": "2026-05-02T00:00:46.752Z",
+    "type": "success",
+    "message": "[CRON] Analyse du soir terminee avec succes"
+  },
+  {
+    "timestamp": "2026-05-02T00:00:46.751Z",
+    "type": "success",
+    "message": "15 tickets generes et sauvegardes pour 2026-05-02"
+  },
+  {
+    "timestamp": "2026-05-02T00:00:10.928Z",
+    "type": "info",
+    "message": "Generation des 15 tickets via Claude AI..."
+  },
+  {
+    "timestamp": "2026-05-02T00:00:10.925Z",
+    "type": "info",
+    "message": "85 evenements avec cotes recuperes"
+  },
+  {
+    "timestamp": "2026-05-02T00:00:00.958Z",
+    "type": "info",
+    "message": "Recuperation des cotes via The Odds API..."
+  },
+  {
+    "timestamp": "2026-05-02T00:00:00.957Z",
+    "type": "info",
+    "message": "0 matchs trouves, enrichissement des stats..."
+  },
+  {
+    "timestamp": "2026-05-02T00:00:00.043Z",
+    "type": "info",
+    "message": "Recuperation des fixtures via API-Football..."
+  },
+  {
+    "timestamp": "2026-05-02T00:00:00.042Z",
+    "type": "info",
+    "message": "Debut analyse pour 2026-05-02"
+  },
+  {
+    "timestamp": "2026-05-02T00:00:00.036Z",
+    "type": "info",
+    "message": "[CRON] Lancement automatique analyse du soir pour 2026-05-02"
+  },
+  {
     "timestamp": "2026-05-01T20:00:23.930Z",
     "type": "success",
     "message": "Scheduleur initialise (20h00 analyse, 07h00 rapport)"
