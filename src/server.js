@@ -64,10 +64,10 @@ async function runEveningAnalysis(date) {
   }
 
   storage.saveApiUsage(usage);
-  storage.addActivityLog('Generation des 15 tickets via Claude AI...', 'info');
+  storage.addActivityLog('Generation des 5 tickets via Claude AI...', 'info');
   const ticketsData = await generateTickets(apiAnthropic, fixtures, oddsData, date, oddsAvailable);
   storage.saveTickets(date, ticketsData);
-  storage.addActivityLog(`15 tickets generes et sauvegardes pour ${date}`, 'success');
+  storage.addActivityLog(`5 tickets generes et sauvegardes pour ${date}`, 'success');
   return ticketsData;
 }
 
@@ -131,10 +131,25 @@ Tu as recu des captures d'ecran et/ou des PDFs contenant des matchs, des cotes e
 
 INSTRUCTIONS :
 1. Analyse TOUTES les images et donnees fournies
-2. Extrais les matchs avec leurs equipes, les cotes disponibles et les statistiques
+2. Extrais les matchs avec leurs equipes et les cotes disponibles
 3. Utilise UNIQUEMENT les cotes que tu vois dans les images, ne les invente pas
 4. Si tu vois des classements ou statistiques, utilise-les pour ta justification
-5. Applique le protocole complet : forme, domicile/exterieur, enjeux, priorite buts/BTTS pour Turquie/Pays-Bas/Allemagne/MLS/Mexique/Bresil/Serie B/Segunda`;
+
+MARCHES AUTORISES UNIQUEMENT - AUCUN AUTRE MARCHE :
+- "BTTS Oui" : les deux equipes marquent (cote entre 1.30 et 2.20 max)
+- "Plus de 2.5 buts" : total buts superieur a 2.5 (cote entre 1.40 et 2.50 max)
+- "Plus de 1.5 buts equipe domicile" : equipe domicile marque plus de 1.5 buts (cote entre 1.25 et 2.00 max)
+
+MARCHES INTERDITS : victoire equipe, match nul, 1, X, 2, double chance, tout autre marche
+
+GENERE EXACTEMENT 5 TICKETS :
+- Ticket 1 "BTTS" : 4 a 6 matchs, UNIQUEMENT "BTTS Oui"
+- Ticket 2 "BTTS" : 4 a 6 matchs DIFFERENTS du ticket 1, UNIQUEMENT "BTTS Oui"
+- Ticket 3 "Plus de 2.5 buts" : 4 a 6 matchs, UNIQUEMENT "Plus de 2.5 buts"
+- Ticket 4 "Plus de 1.5 buts domicile" : 4 a 6 matchs, UNIQUEMENT "Plus de 1.5 buts equipe domicile"
+- Ticket 5 "Mix" : 4 a 6 matchs, mix "BTTS Oui" et "Plus de 1.5 buts equipe domicile" uniquement
+
+Evite au maximum de repeter les memes matchs entre tickets.`;
 
       if (pdfTexts) {
         textPrompt += `\n\nCONTENU DES PDFs :\n${pdfTexts}`;
@@ -144,14 +159,7 @@ INSTRUCTIONS :
         textPrompt += `\n\nNOTES SUPPLEMENTAIRES :\n${notes}`;
       }
 
-      textPrompt += `\n\nGENERE EXACTEMENT 15 TICKETS :
-- 5 "Haute Performance" : 4 a 6 matchs
-- 5 "Securite" : 4 a 6 matchs
-- 5 "Securite et Haute Performance" : 4 a 8 matchs, max 3 picks par match
-
-Evite de repeter les memes matchs entre tickets.
-
-Reponds UNIQUEMENT avec JSON valide, sans markdown :
+      textPrompt += `\n\nReponds UNIQUEMENT avec JSON valide, sans markdown :
 {
   "date": "${date}",
   "generatedAt": "${new Date().toISOString()}",
@@ -159,14 +167,14 @@ Reponds UNIQUEMENT avec JSON valide, sans markdown :
   "tickets": [
     {
       "id": 1,
-      "type": "Haute Performance",
+      "type": "BTTS",
       "raisonnement": "Explication courte",
       "picks": [
         {
           "match": "Equipe A vs Equipe B",
           "league": "Nom championnat",
-          "market": "Plus de 1.5 buts",
-          "odds": 1.35,
+          "market": "BTTS Oui",
+          "odds": 1.45,
           "justification": "Raison courte"
         }
       ]
@@ -178,7 +186,7 @@ Reponds UNIQUEMENT avec JSON valide, sans markdown :
 
       const client = new Anthropic({ apiKey: apiAnthropic });
       const message = await client.messages.create({
-        model: 'claude-opus-4-5',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 8000,
         messages: [{ role: 'user', content: messageContent }]
       });
@@ -200,7 +208,7 @@ Reponds UNIQUEMENT avec JSON valide, sans markdown :
       }
 
       storage.saveTickets(date, parsed);
-      storage.addActivityLog(`15 tickets generes depuis fichiers manuels pour ${date}`, 'success');
+      storage.addActivityLog(`5 tickets generes depuis fichiers manuels pour ${date}`, 'success');
     } catch (e) {
       storage.addActivityLog(`Erreur analyse manuelle: ${e.message}`, 'error');
     } finally {

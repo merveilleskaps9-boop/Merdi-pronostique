@@ -1,5 +1,105 @@
 [
   {
+    "timestamp": "2026-05-06T11:14:40.668Z",
+    "type": "success",
+    "message": "15 tickets generes depuis fichiers manuels pour 2026-05-06"
+  },
+  {
+    "timestamp": "2026-05-06T11:14:03.112Z",
+    "type": "info",
+    "message": "Analyse manuelle avec 6 fichier(s) pour 2026-05-06"
+  },
+  {
+    "timestamp": "2026-05-06T11:02:20.432Z",
+    "type": "success",
+    "message": "Scheduleur initialise (20h00 analyse, 07h00 rapport)"
+  },
+  {
+    "timestamp": "2026-05-06T11:02:20.384Z",
+    "type": "success",
+    "message": "Serveur demarre sur le port 3000"
+  },
+  {
+    "timestamp": "2026-05-06T11:00:00.180Z",
+    "type": "error",
+    "message": "[CRON] Erreur rapport du matin : Aucun ticket trouve pour 2026-05-05"
+  },
+  {
+    "timestamp": "2026-05-06T11:00:00.157Z",
+    "type": "info",
+    "message": "[CRON] Lancement automatique rapport du matin pour 2026-05-05"
+  },
+  {
+    "timestamp": "2026-05-03T01:53:07.045Z",
+    "type": "error",
+    "message": "[CRON] Erreur analyse du soir : Request timed out."
+  },
+  {
+    "timestamp": "2026-05-03T01:02:11.960Z",
+    "type": "info",
+    "message": "Generation des 15 tickets via Claude AI..."
+  },
+  {
+    "timestamp": "2026-05-03T01:02:11.957Z",
+    "type": "info",
+    "message": "69 evenements avec cotes recuperes"
+  },
+  {
+    "timestamp": "2026-05-03T00:00:01.326Z",
+    "type": "info",
+    "message": "Recuperation des cotes via The Odds API..."
+  },
+  {
+    "timestamp": "2026-05-03T00:00:01.326Z",
+    "type": "info",
+    "message": "0 matchs trouves"
+  },
+  {
+    "timestamp": "2026-05-03T00:00:00.453Z",
+    "type": "info",
+    "message": "Recuperation des fixtures via API-Football..."
+  },
+  {
+    "timestamp": "2026-05-03T00:00:00.452Z",
+    "type": "info",
+    "message": "Debut analyse pour 2026-05-03"
+  },
+  {
+    "timestamp": "2026-05-03T00:00:00.445Z",
+    "type": "info",
+    "message": "[CRON] Lancement automatique analyse du soir pour 2026-05-03"
+  },
+  {
+    "timestamp": "2026-05-02T19:05:40.086Z",
+    "type": "success",
+    "message": "15 tickets generes depuis fichiers manuels pour 2026-05-02"
+  },
+  {
+    "timestamp": "2026-05-02T19:05:26.466Z",
+    "type": "error",
+    "message": "Erreur analyse manuelle: Unexpected token 'J', \"Je ne peux\"... is not valid JSON"
+  },
+  {
+    "timestamp": "2026-05-02T19:05:20.752Z",
+    "type": "info",
+    "message": "Analyse manuelle avec 1 fichier(s) pour 2026-05-02"
+  },
+  {
+    "timestamp": "2026-05-02T19:04:33.928Z",
+    "type": "info",
+    "message": "Analyse manuelle avec 19 fichier(s) pour 2026-05-02"
+  },
+  {
+    "timestamp": "2026-05-02T18:56:24.692Z",
+    "type": "error",
+    "message": "Erreur analyse manuelle: Unexpected token 'J', \"Je compren\"... is not valid JSON"
+  },
+  {
+    "timestamp": "2026-05-02T18:56:15.047Z",
+    "type": "info",
+    "message": "Analyse manuelle avec 1 fichier(s) pour 2026-05-02"
+  },
+  {
     "timestamp": "2026-05-02T16:55:25.535Z",
     "type": "success",
     "message": "Scheduleur initialise (20h00 analyse, 07h00 rapport)"

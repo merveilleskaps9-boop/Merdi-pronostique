@@ -17,63 +17,73 @@ function buildAnalysisPrompt(fixtures, odds, date, oddsAvailable) {
        f.home.name.toLowerCase().includes(o.homeTeam.toLowerCase().slice(0, 5)))
     );
     const oddsStr = matchOdds
-      ? `Cotes reelles: 1=${matchOdds.odds.homeWin||'?'} X=${matchOdds.odds.draw||'?'} 2=${matchOdds.odds.awayWin||'?'} O1.5=${matchOdds.odds.over15||'?'} O2.5=${matchOdds.odds.over25||'?'}`
-      : 'Pas de cotes disponibles pour ce match';
+      ? `BTTS=${matchOdds.odds.btts_yes||'?'} O2.5=${matchOdds.odds.over25||'?'} O1.5domicile=${matchOdds.odds.over15||'?'}`
+      : 'cotes non disponibles';
     return `[${f.league ? f.league.name : 'Ligue'}] ${f.home ? f.home.name : '?'} vs ${f.away ? f.away.name : '?'} | ${oddsStr}`;
   }).join('\n');
 
   const oddsOnly = odds.slice(0, 30).map(o =>
-    `${o.homeTeam} vs ${o.awayTeam}: 1=${o.odds.homeWin||'?'} X=${o.odds.draw||'?'} 2=${o.odds.awayWin||'?'} O1.5=${o.odds.over15||'?'} O2.5=${o.odds.over25||'?'}`
+    `${o.homeTeam} vs ${o.awayTeam}: BTTS=${o.odds.btts_yes||'?'} O2.5=${o.odds.over25||'?'} O1.5=${o.odds.over15||'?'}`
   ).join('\n');
 
-  const oddsNote = oddsAvailable
-    ? ''
-    : `\nIMPORTANT - COTES NON DISPONIBLES : Tu ne dois PAS inventer de cotes. Analyse uniquement la forme des equipes, le classement, les enjeux et les statistiques. Pour chaque pick mets odds: 0 et explique dans la justification pourquoi ce match est interessant sans mentionner de cotes.`;
+  const oddsNote = oddsAvailable ? '' : `\nCOTES NON DISPONIBLES : mets odds: 0 pour tous les picks.`;
 
   return `Tu es un expert en analyse de paris sportifs football. Date : ${date}.
 
 MATCHS DU JOUR :
 ${fixturesSummary || 'Donnees non disponibles.'}
 
-COTES EN TEMPS REEL :
-${oddsOnly || 'Cotes non disponibles.'}
+COTES REELLES :
+${oddsOnly || 'Non disponibles.'}
 ${oddsNote}
 
-${oddsAvailable ? `REGLES ABSOLUES :
-1. Utilise UNIQUEMENT les cotes reelles fournies ci-dessus quand disponibles
-2. Si cotes non disponibles pour un match, utilise des cotes REALISTES et CONSERVATIVES
-3. Cotes minimum : BTTS > 1.30, Over 1.5 > 1.25, Over 2.5 > 1.40, Victoire favorite > 1.30
-4. Fournis UNIQUEMENT les cotes individuelles. Le systeme calculera automatiquement la cote totale.` : `REGLES ABSOLUES :
-1. NE PAS inventer de cotes. Mets odds: 0 pour tous les picks.
-2. Base ton analyse sur la forme, le classement, les enjeux et les statistiques uniquement.
-3. Explique clairement pourquoi chaque match est interessant dans la justification.`}
+=== REGLES STRICTES - LIRE ATTENTIVEMENT ===
 
-PROTOCOLE : Forme 3 derniers matchs, performance domicile/exterieur, priorite buts/BTTS pour Turquie, Pays-Bas, Allemagne, MLS, Mexique, Bresil, Serie B, Segunda.
+MARCHES AUTORISES : SEULEMENT CES 3 MARCHES, AUCUN AUTRE :
+- "BTTS Oui" : les deux equipes marquent
+- "Plus de 2.5 buts" : total buts dans le match superieur a 2.5
+- "Plus de 1.5 buts equipe domicile" : equipe a domicile marque plus de 1.5 buts
 
-GENERE EXACTEMENT 15 TICKETS :
-- 5 "Haute Performance" : 4 a 6 matchs
-- 5 "Securite" : 4 a 6 matchs
-- 5 "Securite et Haute Performance" : 4 a 8 matchs, max 3 picks par match
+MARCHES INTERDITS (ne jamais utiliser) :
+- Victoire equipe 1, Victoire equipe 2, Match nul
+- 1, X, 2, 1X, X2, 1X2
+- Double chance
+- Tout autre marche que les 3 autorises ci-dessus
 
-Evite de repeter les memes matchs entre tickets.
+COTES INDIVIDUELLES AUTORISEES :
+- "BTTS Oui" : entre 1.30 et 2.20 maximum
+- "Plus de 2.5 buts" : entre 1.40 et 2.50 maximum
+- "Plus de 1.5 buts equipe domicile" : entre 1.25 et 2.00 maximum
+- Si tu n'as pas de cote reelle, utilise une cote realiste dans ces fourchettes
+- JAMAIS de cote superieure a 2.50 pour un pick individuel
 
-Reponds UNIQUEMENT avec JSON valide, sans markdown :
+NOMBRE DE PICKS PAR TICKET : entre 4 et 6 matchs DIFFERENTS
+
+GENERE EXACTEMENT 5 TICKETS :
+- Ticket 1 "BTTS" : 4 a 6 matchs, UNIQUEMENT le marche "BTTS Oui"
+- Ticket 2 "BTTS" : 4 a 6 matchs DIFFERENTS du ticket 1, UNIQUEMENT "BTTS Oui"
+- Ticket 3 "Plus de 2.5 buts" : 4 a 6 matchs, UNIQUEMENT "Plus de 2.5 buts"
+- Ticket 4 "Plus de 1.5 buts domicile" : 4 a 6 matchs, UNIQUEMENT "Plus de 1.5 buts equipe domicile"
+- Ticket 5 "Mix" : 4 a 6 matchs, mix de "BTTS Oui" et "Plus de 1.5 buts equipe domicile" uniquement
+
+Evite au maximum de repeter les memes matchs entre les tickets.
+
+Reponds UNIQUEMENT avec JSON valide, sans markdown, sans backticks :
 {
   "date": "${date}",
   "generatedAt": "${new Date().toISOString()}",
-  "oddsAvailable": ${oddsAvailable},
   "tickets": [
     {
       "id": 1,
-      "type": "Haute Performance",
-      "raisonnement": "Explication courte",
+      "type": "BTTS",
+      "raisonnement": "Explication courte pourquoi ces matchs sont bons pour BTTS",
       "picks": [
         {
           "match": "Equipe A vs Equipe B",
           "league": "Nom championnat",
-          "market": "Plus de 1.5 buts",
-          "odds": 1.35,
-          "justification": "Raison courte"
+          "market": "BTTS Oui",
+          "odds": 1.45,
+          "justification": "Les deux equipes ont marque dans leurs 5 derniers matchs"
         }
       ]
     }
@@ -118,21 +128,9 @@ ${ticketsSummary}
 Reponds UNIQUEMENT avec JSON valide :
 {
   "reportDate": "${new Date().toISOString()}",
-  "summary": { "totalTickets": 15, "won": 0, "lost": 0, "pending": 15, "winRate": "0%" },
+  "summary": { "totalTickets": 5, "won": 0, "lost": 0, "pending": 5, "winRate": "0%" },
   "ticketResults": [],
   "analysis": "Rapport en attente des resultats."
 }`;
   const message = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 4000,
-    messages: [{ role: 'user', content: prompt }]
-  });
-  const rawText = message.content[0].text;
-  let jsonText = rawText.trim();
-  if (jsonText.startsWith('```')) {
-    jsonText = jsonText.replace(/^```[a-z]*\n?/, '').replace(/\n?```$/, '').trim();
-  }
-  return JSON.parse(jsonText);
-}
-
-module.exports = { generateTickets, generateMorningReport, calculateTotalOdds };
+    model: 'claude-ha
