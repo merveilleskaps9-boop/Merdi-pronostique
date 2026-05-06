@@ -1,5 +1,25 @@
 [
   {
+    "timestamp": "2026-05-06T15:26:56.121Z",
+    "type": "success",
+    "message": "Scheduleur initialise (20h00 analyse, 07h00 rapport)"
+  },
+  {
+    "timestamp": "2026-05-06T15:26:56.056Z",
+    "type": "success",
+    "message": "Serveur demarre sur le port 3000"
+  },
+  {
+    "timestamp": "2026-05-06T15:06:20.388Z",
+    "type": "success",
+    "message": "Scheduleur initialise (20h00 analyse, 07h00 rapport)"
+  },
+  {
+    "timestamp": "2026-05-06T15:06:20.341Z",
+    "type": "success",
+    "message": "Serveur demarre sur le port 3000"
+  },
+  {
     "timestamp": "2026-05-06T11:14:40.668Z",
     "type": "success",
     "message": "15 tickets generes depuis fichiers manuels pour 2026-05-06"
