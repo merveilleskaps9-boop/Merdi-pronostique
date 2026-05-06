@@ -1,5 +1,135 @@
 [
   {
+    "timestamp": "2026-05-06T16:16:22.752Z",
+    "type": "success",
+    "message": "Scheduleur initialise (20h00 analyse, 07h00 rapport)"
+  },
+  {
+    "timestamp": "2026-05-06T16:16:22.695Z",
+    "type": "success",
+    "message": "Serveur demarre sur le port 3000"
+  },
+  {
+    "timestamp": "2026-05-06T16:05:31.314Z",
+    "type": "error",
+    "message": "Erreur analyse manuelle: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.0.content.0.image.source.base64.media_type: Input should be 'image/jpeg', 'image/png', 'image/gif' or 'image/webp'\"},\"request_id\":\"req_011CambnxydzrShEq6Kw22Ea\"}"
+  },
+  {
+    "timestamp": "2026-05-06T16:05:30.984Z",
+    "type": "info",
+    "message": "Analyse manuelle avec 11 fichier(s) pour 2026-05-06"
+  },
+  {
+    "timestamp": "2026-05-06T16:02:37.782Z",
+    "type": "success",
+    "message": "Rapport du matin genere pour 2026-05-06"
+  },
+  {
+    "timestamp": "2026-05-06T16:02:36.531Z",
+    "type": "info",
+    "message": "Debut rapport du matin pour 2026-05-06"
+  },
+  {
+    "timestamp": "2026-05-06T16:01:51.899Z",
+    "type": "error",
+    "message": "Erreur analyse manuelle: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.0.content.0.image.source.base64.media_type: Input should be 'image/jpeg', 'image/png', 'image/gif' or 'image/webp'\"},\"request_id\":\"req_011CambWn2sgbXVNP8PwYun8\"}"
+  },
+  {
+    "timestamp": "2026-05-06T16:01:51.455Z",
+    "type": "info",
+    "message": "Analyse manuelle avec 11 fichier(s) pour 2026-05-06"
+  },
+  {
+    "timestamp": "2026-05-06T16:01:27.241Z",
+    "type": "success",
+    "message": "5 tickets generes et sauvegardes pour 2026-05-06"
+  },
+  {
+    "timestamp": "2026-05-06T16:01:24.415Z",
+    "type": "info",
+    "message": "Generation des 5 tickets via Claude AI..."
+  },
+  {
+    "timestamp": "2026-05-06T16:01:24.413Z",
+    "type": "info",
+    "message": "4 evenements avec cotes recuperes"
+  },
+  {
+    "timestamp": "2026-05-06T16:01:16.085Z",
+    "type": "info",
+    "message": "Recuperation des cotes via The Odds API..."
+  },
+  {
+    "timestamp": "2026-05-06T16:01:16.084Z",
+    "type": "info",
+    "message": "0 matchs trouves"
+  },
+  {
+    "timestamp": "2026-05-06T16:01:15.177Z",
+    "type": "info",
+    "message": "Recuperation des fixtures via API-Football..."
+  },
+  {
+    "timestamp": "2026-05-06T16:01:15.175Z",
+    "type": "info",
+    "message": "Debut analyse pour 2026-05-06"
+  },
+  {
+    "timestamp": "2026-05-06T16:01:15.172Z",
+    "type": "info",
+    "message": "Analyse automatique lancee pour 2026-05-06"
+  },
+  {
+    "timestamp": "2026-05-06T16:01:03.021Z",
+    "type": "success",
+    "message": "5 tickets generes et sauvegardes pour 2026-05-06"
+  },
+  {
+    "timestamp": "2026-05-06T16:01:01.160Z",
+    "type": "info",
+    "message": "Generation des 5 tickets via Claude AI..."
+  },
+  {
+    "timestamp": "2026-05-06T16:01:01.157Z",
+    "type": "info",
+    "message": "4 evenements avec cotes recuperes"
+  },
+  {
+    "timestamp": "2026-05-06T16:00:53.538Z",
+    "type": "info",
+    "message": "Recuperation des cotes via The Odds API..."
+  },
+  {
+    "timestamp": "2026-05-06T16:00:53.537Z",
+    "type": "info",
+    "message": "0 matchs trouves"
+  },
+  {
+    "timestamp": "2026-05-06T16:00:52.054Z",
+    "type": "info",
+    "message": "Recuperation des fixtures via API-Football..."
+  },
+  {
+    "timestamp": "2026-05-06T16:00:52.053Z",
+    "type": "info",
+    "message": "Debut analyse pour 2026-05-06"
+  },
+  {
+    "timestamp": "2026-05-06T16:00:52.050Z",
+    "type": "info",
+    "message": "Analyse automatique lancee pour 2026-05-06"
+  },
+  {
+    "timestamp": "2026-05-06T15:31:07.484Z",
+    "type": "error",
+    "message": "Erreur analyse manuelle: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.0.content.0.image.source.base64.media_type: Input should be 'image/jpeg', 'image/png', 'image/gif' or 'image/webp'\"},\"request_id\":\"req_011CamZAq2fLhYUQwsbSwH3R\"}"
+  },
+  {
+    "timestamp": "2026-05-06T15:31:07.168Z",
+    "type": "info",
+    "message": "Analyse manuelle avec 6 fichier(s) pour 2026-05-06"
+  },
+  {
     "timestamp": "2026-05-06T15:26:56.121Z",
     "type": "success",
     "message": "Scheduleur initialise (20h00 analyse, 07h00 rapport)"

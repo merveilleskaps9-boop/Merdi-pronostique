@@ -1,0 +1,12 @@
+{
+  "reportDate": "2026-05-06T16:02:36.532Z",
+  "summary": {
+    "totalTickets": 0,
+    "won": 0,
+    "lost": 0,
+    "pending": 0,
+    "winRate": "0%"
+  },
+  "ticketResults": [],
+  "analysis": "Aucun ticket fourni. Veuillez fournir les détails des tickets football pour générer un rapport de performance."
+}

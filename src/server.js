@@ -117,7 +117,7 @@ app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
           pdfTexts += `\n--- PDF: ${file.originalname} ---\n${text}\n`;
         } else {
           const base64 = fileToBase64(file.path);
-          const mimeType = getMimeType(file.path);
+          const mimeType = file.mimetype || getMimeType(file.originalname);
           messageContent.push({
             type: 'image',
             source: { type: 'base64', media_type: mimeType, data: base64 }
