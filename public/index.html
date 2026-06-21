@@ -141,6 +141,16 @@
 <input type="file" id="file-input" multiple accept=".jpg,.jpeg,.png,.gif,.webp,.pdf" style="display:none" onchange="handleFileSelect(this.files)">
 <div id="file-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>
 </div>
+
+<div class="form-group" style="margin-bottom: 15px;">
+  <label style="display: block; margin-bottom: 5px; color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Sport à analyser</label>
+  <select id="manuel-sport" style="width: 100%; padding: 10px; border-radius: var(--radius); border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-primary); font-family: var(--font-mono);">
+    <option value="football">⚽ Football</option>
+    <option value="basketball">🏀 Basket-ball (NBA)</option>
+    <option value="baseball">⚾ Baseball (MLB)</option>
+  </select>
+</div>
+
 <div class="form-group">
 <label>Notes supplementaires (optionnel)</label>
 <textarea id="manuel-notes" style="width:100%;background:var(--bg-surface);border:1px solid var(--border-strong);border-radius:var(--radius);color:var(--text-primary);padding:9px 12px;font-size:13px;font-family:var(--font-mono);min-height:80px;resize:vertical;" placeholder="Blessures importantes, absences, contexte supplementaire..."></textarea>
@@ -150,7 +160,7 @@
 <div class="progress-track"><div class="progress-fill" id="manuel-progress-fill" style="width:0%"></div></div>
 </div>
 <div id="manuel-result" class="feedback-msg"></div>
-<button class="btn btn-primary" onclick="launchManualAnalysis()" id="manuel-btn">Analyser et generer les 15 tickets</button>
+<button class="btn btn-primary" onclick="launchManualAnalysis()" id="manuel-btn">Analyser et generer les tickets</button>
 </div>
 </section>
 <section id="tab-historique" class="tab-section">

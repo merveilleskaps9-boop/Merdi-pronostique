@@ -160,7 +160,7 @@ async function launchManualAnalysis() {
     [15, 'Préparation des fichiers...'],
     [35, 'Envoi vers Claude AI...'],
     [60, 'Lecture des images et PDFs...'],
-    [80, 'Génération des 15 tickets...'],
+    [80, 'Génération des tickets...'],
     [100, 'Finalisation...']
   ];
 
@@ -176,8 +176,14 @@ async function launchManualAnalysis() {
   try {
     const formData = new FormData();
     formData.append('date', date);
+
+    const sportSelect = document.getElementById('manuel-sport');
+    const sport = sportSelect ? sportSelect.value : 'football';
+    formData.append('sport', sport);
+
     const notes = document.getElementById('manuel-notes').value;
     if (notes) formData.append('notes', notes);
+    
     selectedFiles.forEach(f => formData.append('files', f));
 
     const res = await fetch('/api/analyze-manual', { method: 'POST', body: formData });
@@ -187,7 +193,7 @@ async function launchManualAnalysis() {
       fill.style.width = '100%';
       msg.textContent = 'Analyse lancée avec succès!';
       result.className = 'feedback-msg feedback-ok';
-      result.textContent = 'Les tickets sont en cours de génération. Vérifiez dans 30 secondes dans "Tickets du jour".';
+      result.textContent = `Les tickets de ${sport} sont en cours de génération. Vérifiez dans 30 secondes dans "Tickets du jour".`;
       setTimeout(() => {
         document.getElementById('tickets-date-picker').value = date;
         loadTicketsForDate(date);
@@ -205,7 +211,7 @@ async function launchManualAnalysis() {
     result.className = 'feedback-msg feedback-err';
     result.textContent = 'Erreur: ' + e.message;
     btn.disabled = false;
-    btn.textContent = 'Analyser et générer les 15 tickets ↗';
+    btn.textContent = 'Analyser et générer les tickets ↗';
   }
 }
 
@@ -318,7 +324,7 @@ function renderTicketsEmpty() {
   document.getElementById('tickets-container').innerHTML = `
     <div class="empty-state">
       <div class="empty-icon">⚽</div>
-      <p>Aucun ticket disponible.<br>Lancez une analyse pour générer les 15 tickets.</p>
+      <p>Aucun ticket disponible.<br>Lancez une analyse pour générer les tickets.</p>
       <button class="btn btn-primary" onclick="openAnalyzeModal()">Lancer l'analyse</button>
     </div>`;
 }
