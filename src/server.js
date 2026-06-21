@@ -140,7 +140,7 @@ async function runMorningReport(date) {
   return report;
 }
 
-// ---- Route analyse manuelle avec images et PDFs ----
+// ---- Route analyse manuelle MULTI-IA (Claude + Gemini) ----
 app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
   const files = req.files || [];
   const { date, notes, sport = 'football' } = req.body;
@@ -152,18 +152,21 @@ app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
 
   const settings = storage.loadSettings();
   const apiAnthropic = settings.anthropicKey || process.env.ANTHROPIC_API_KEY;
-  if (!apiAnthropic) {
+  const apiGemini = settings.geminiKey || process.env.GEMINI_API_KEY;
+
+  if (!apiAnthropic && !apiGemini) {
     cleanupFiles(files);
-    return res.status(400).json({ error: 'Cle Anthropic manquante' });
+    return res.status(400).json({ error: 'Aucune cle IA configuree (Claude ou Gemini)' });
   }
 
-  res.json({ message: 'Analyse manuelle lancee en arriere-plan', date });
+  res.json({ message: 'Analyse manuelle multi-IA lancee', date });
 
   (async () => {
     try {
-      storage.addActivityLog(`Analyse manuelle (${sport}) avec ${files.length} fichier(s) pour ${date}`, 'info');
+      storage.addActivityLog(`Analyse (${sport}) lancee avec ${files.length} fichier(s)`, 'info');
 
-      const messageContent = [];
+      const messageContentClaude = [];
+      const messageContentGemini = [];
       let pdfTexts = '';
 
       for (const file of files) {
@@ -186,50 +189,104 @@ app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
 
           const validMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
           if (validMimeTypes.includes(mimeType)) {
-             messageContent.push({
+             // Format pour Claude
+             messageContentClaude.push({
               type: 'image',
               source: { type: 'base64', media_type: mimeType, data: base64 }
             });
+             // Format pour Gemini
+             messageContentGemini.push({
+               inlineData: { data: base64, mimeType: mimeType }
+             });
           } else {
-             storage.addActivityLog(`Fichier ignore : format non supporte (${mimeType}) pour ${file.originalname}`, 'warn');
+             storage.addActivityLog(`Fichier ignore : format non supporte (${mimeType})`, 'warn');
           }
         }
       }
 
       const textPrompt = buildPrompt(sport, date, pdfTexts, notes);
-      messageContent.push({ type: 'text', text: textPrompt });
+      
+      messageContentClaude.push({ type: 'text', text: textPrompt });
+      messageContentGemini.unshift({ text: textPrompt }); // Texte en premier pour Gemini
 
-      if (messageContent.length === 1) {
-          throw new Error("Aucune image valide ou texte PDF n'a pu etre extrait des fichiers fournis.");
+      if (messageContentClaude.length === 1 && messageContentGemini.length === 1) {
+          throw new Error("Aucune image valide trouvee.");
       }
 
-      const client = new Anthropic({ apiKey: apiAnthropic });
-      const message = await client.messages.create({
-        model: 'claude-haiku-4-5-20251001', 
-        max_tokens: 8000,
-        messages: [{ role: 'user', content: messageContent }]
+      let combinedTickets = [];
+
+      // --- 1. APPEL CLAUDE ---
+      if (apiAnthropic) {
+        try {
+          storage.addActivityLog(`Interrogation de Claude AI en cours...`, 'info');
+          const client = new Anthropic({ apiKey: apiAnthropic });
+          const message = await client.messages.create({
+            model: 'claude-haiku-4-5-20251001', 
+            max_tokens: 8000,
+            messages: [{ role: 'user', content: messageContentClaude }]
+          });
+
+          let jsonText = message.content[0].text.trim();
+          if (jsonText.startsWith('```')) jsonText = jsonText.replace(/^```[a-z]*\n?/, '').replace(/\n?```$/, '').trim();
+          
+          const parsed = JSON.parse(jsonText);
+          if (parsed.tickets) {
+            parsed.tickets.forEach(t => {
+              t.type = t.type + ' (Claude)';
+              combinedTickets.push(t);
+            });
+          }
+          storage.addActivityLog(`Claude a termine son analyse`, 'success');
+        } catch (err) {
+          storage.addActivityLog(`Erreur Claude: ${err.message}`, 'error');
+        }
+      }
+
+      // --- 2. APPEL GEMINI ---
+      if (apiGemini) {
+        try {
+          storage.addActivityLog(`Interrogation de Gemini AI en cours...`, 'info');
+          const genAI = new GoogleGenerativeAI(apiGemini);
+          // Utilisation du modele Flash, tres rapide et parfait pour la vision
+          const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+          
+          const result = await model.generateContent(messageContentGemini);
+          let jsonText = result.response.text().trim();
+          if (jsonText.startsWith('```')) jsonText = jsonText.replace(/^```[a-z]*\n?/, '').replace(/\n?```$/, '').trim();
+          
+          const parsed = JSON.parse(jsonText);
+          if (parsed.tickets) {
+            parsed.tickets.forEach((t, index) => {
+              t.id = t.id + 100 + index; // Decaler les IDs pour eviter les doublons
+              t.type = t.type + ' (Gemini)';
+              combinedTickets.push(t);
+            });
+          }
+          storage.addActivityLog(`Gemini a termine son analyse`, 'success');
+        } catch (err) {
+          storage.addActivityLog(`Erreur Gemini: ${err.message}`, 'error');
+        }
+      }
+
+      // Finalisation et calcul des cotes totales
+      combinedTickets = combinedTickets.map(ticket => {
+        const totalOdds = Math.round(
+          (ticket.picks || []).reduce((acc, p) => acc * (parseFloat(p.odds) || 1), 1) * 100
+        ) / 100;
+        return { ...ticket, totalOdds };
       });
 
-      const rawText = message.content[0].text;
-      let jsonText = rawText.trim();
-      if (jsonText.startsWith('```')) {
-        jsonText = jsonText.replace(/^```[a-z]*\n?/, '').replace(/\n?```$/, '').trim();
-      }
+      storage.saveTickets(date, {
+        date: date,
+        generatedAt: new Date().toISOString(),
+        source: 'manuel',
+        tickets: combinedTickets
+      });
+      
+      storage.addActivityLog(`Analyse terminee : ${combinedTickets.length} tickets generes au total`, 'success');
 
-      const parsed = JSON.parse(jsonText);
-      if (parsed.tickets) {
-        parsed.tickets = parsed.tickets.map(ticket => {
-          const totalOdds = Math.round(
-            (ticket.picks || []).reduce((acc, p) => acc * (parseFloat(p.odds) || 1), 1) * 100
-          ) / 100;
-          return { ...ticket, totalOdds };
-        });
-      }
-
-      storage.saveTickets(date, parsed);
-      storage.addActivityLog(`5 tickets (${sport}) generes depuis fichiers manuels pour ${date}`, 'success');
     } catch (e) {
-      storage.addActivityLog(`Erreur analyse manuelle: ${e.message}`, 'error');
+      storage.addActivityLog(`Erreur globale analyse manuelle: ${e.message}`, 'error');
     } finally {
       cleanupFiles(files);
     }
@@ -248,7 +305,8 @@ app.get('/api/status', (req, res) => {
     configured: {
       apiFootball: !!(settings.apiFootballKey || process.env.API_FOOTBALL_KEY),
       apiOdds: !!(settings.apiOddsKey || process.env.ODDS_API_KEY),
-      anthropic: !!(settings.anthropicKey || process.env.ANTHROPIC_API_KEY)
+      anthropic: !!(settings.anthropicKey || process.env.ANTHROPIC_API_KEY),
+      gemini: !!(settings.geminiKey || process.env.GEMINI_API_KEY)
     }
   });
 });
