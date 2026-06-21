@@ -5,18 +5,29 @@ let currentFilter = 'all';
 let autoCloseTimer = null;
 let selectedFiles = [];
 
+// Fonction utilitaire pour obtenir la date locale au format YYYY-MM-DD
+function getLocalYYYYMMDD(timestamp) {
+  const d = new Date(new Date(timestamp).toLocaleString('en-US', { timeZone: 'America/Toronto' }));
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${month}-${day}`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initNav();
   initSidebar();
   initClock();
   initDropZone();
   refreshDashboard();
-  const today = new Date().toISOString().slice(0, 10);
+  
+  const today = getLocalYYYYMMDD(Date.now());
   document.getElementById('tickets-date-picker').value = today;
   document.getElementById('analyze-date').value = today;
   document.getElementById('manuel-date').value = today;
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  
+  const yesterday = getLocalYYYYMMDD(Date.now() - 86400000);
   document.getElementById('report-date').value = yesterday;
+  
   loadTicketsForDate(today);
   loadHistory();
   loadSettings();
@@ -112,7 +123,6 @@ function renderFilePreview() {
   if (!preview) return;
   if (!selectedFiles.length) { preview.innerHTML = ''; return; }
   preview.innerHTML = selectedFiles.map((f, i) => {
-    const isImg = f.type.startsWith('image/');
     const isPdf = f.type === 'application/pdf';
     const icon = isPdf ? '📄' : '🖼️';
     const name = f.name.length > 20 ? f.name.slice(0, 17) + '...' : f.name;
@@ -122,7 +132,7 @@ function renderFilePreview() {
     </div>`;
   }).join('');
   const count = document.getElementById('drop-zone');
-  if (count) count.querySelector('div:nth-child(2)').textContent = `${selectedFiles.length} fichier(s) selectionne(s) - Cliquer pour en ajouter`;
+  if (count) count.querySelector('div:nth-child(2)').textContent = `${selectedFiles.length} fichier(s) sélectionné(s) - Cliquer pour en ajouter`;
 }
 
 function removeFile(index) {
@@ -132,7 +142,7 @@ function removeFile(index) {
 
 async function launchManualAnalysis() {
   const date = document.getElementById('manuel-date').value;
-  if (!date) { alert('Selectionnez une date.'); return; }
+  if (!date) { alert('Sélectionnez une date.'); return; }
   if (!selectedFiles.length) { alert('Ajoutez au moins un fichier (screenshot ou PDF).'); return; }
 
   const btn = document.getElementById('manuel-btn');
@@ -147,10 +157,10 @@ async function launchManualAnalysis() {
   result.textContent = '';
 
   const steps = [
-    [15, 'Preparation des fichiers...'],
+    [15, 'Préparation des fichiers...'],
     [35, 'Envoi vers Claude AI...'],
     [60, 'Lecture des images et PDFs...'],
-    [80, 'Generation des 15 tickets...'],
+    [80, 'Génération des 15 tickets...'],
     [100, 'Finalisation...']
   ];
 
@@ -175,9 +185,9 @@ async function launchManualAnalysis() {
 
     if (res.ok) {
       fill.style.width = '100%';
-      msg.textContent = 'Analyse lancee avec succes !';
+      msg.textContent = 'Analyse lancée avec succès!';
       result.className = 'feedback-msg feedback-ok';
-      result.textContent = 'Les tickets sont en cours de generation. Verifiez dans 30 secondes dans "Tickets du jour".';
+      result.textContent = 'Les tickets sont en cours de génération. Vérifiez dans 30 secondes dans "Tickets du jour".';
       setTimeout(() => {
         document.getElementById('tickets-date-picker').value = date;
         loadTicketsForDate(date);
@@ -193,9 +203,9 @@ async function launchManualAnalysis() {
   } catch (e) {
     clearInterval(interval);
     result.className = 'feedback-msg feedback-err';
-    result.textContent = 'Erreur : ' + e.message;
+    result.textContent = 'Erreur: ' + e.message;
     btn.disabled = false;
-    btn.textContent = 'Analyser et generer les 15 tickets ↗';
+    btn.textContent = 'Analyser et générer les 15 tickets ↗';
   }
 }
 
@@ -205,7 +215,9 @@ async function refreshDashboard() {
     const status = await fetch('/api/status').then(r => r.json());
     updateStatsFromStatus(status);
     checkConfigAlert(status);
-  } catch (e) {}
+  } catch (e) {
+    console.error('Erreur lors du rafraîchissement du statut:', e);
+  }
   await loadLogs();
   await loadLatestReport();
 }
@@ -223,8 +235,8 @@ function updateStatsFromStatus(status) {
   document.getElementById('next-analysis-in').textContent = `dans ${Math.floor(minutesTo20h/60)}h ${minutesTo20h%60}min`;
   document.getElementById('usage-football').textContent = `${usage.footballDailyUsed||0} / ${usage.footballDailyLimit||100}`;
   document.getElementById('usage-odds').textContent = `${usage.oddsMonthlyUsed||0} / ${usage.oddsMonthlyLimit||500}`;
-  document.getElementById('bar-football').style.width = Math.min(((usage.footballDailyUsed||0)/100)*100,100)+'%';
-  document.getElementById('bar-odds').style.width = Math.min(((usage.oddsMonthlyUsed||0)/500)*100,100)+'%';
+  document.getElementById('bar-football').style.width = Math.min(((usage.footballDailyUsed||0)/100)*100, 100) + '%';
+  document.getElementById('bar-odds').style.width = Math.min(((usage.oddsMonthlyUsed||0)/500)*100, 100) + '%';
 }
 
 function checkConfigAlert(status) {
@@ -240,14 +252,15 @@ async function loadLogs() {
   try {
     const logs = await fetch('/api/logs?limit=10').then(r => r.json());
     const container = document.getElementById('activity-log');
-    if (!logs.length) { container.innerHTML = '<div class="log-empty">Aucune activite recente.</div>'; return; }
+    if (!logs.length) { container.innerHTML = '<div class="log-empty">Aucune activité récente.</div>'; return; }
     container.innerHTML = logs.map(l => {
-      const typeClass = {success:'dot-success',error:'dot-error',warn:'dot-warn',info:'dot-info'}[l.type]||'dot-info';
-      const time = new Date(l.timestamp).toLocaleTimeString('fr-CA', {timeZone:'America/Toronto',hour:'2-digit',minute:'2-digit'});
+      const typeClass = { success: 'dot-success', error: 'dot-error', warn: 'dot-warn', info: 'dot-info' }[l.type] || 'dot-info';
+      const time = new Date(l.timestamp).toLocaleTimeString('fr-CA', { timeZone: 'America/Toronto', hour: '2-digit', minute: '2-digit' });
       return `<div class="log-item"><span class="log-dot ${typeClass}"></span><span class="log-msg">${escHtml(l.message)}</span><span class="log-time">${time}</span></div>`;
     }).join('');
   } catch (e) {
     document.getElementById('activity-log').innerHTML = '<div class="log-empty">Erreur chargement journal.</div>';
+    console.error('Erreur de chargement des logs:', e);
   }
 }
 
@@ -264,21 +277,26 @@ async function loadLatestReport() {
     document.getElementById('win-rate').textContent = r.winRate || '--';
     document.getElementById('latest-report').innerHTML = `
       <div class="report-summary">
-        <div class="report-stat"><div class="report-stat-val report-win">${r.won}</div><div class="report-stat-lbl">Gagnes</div></div>
+        <div class="report-stat"><div class="report-stat-val report-win">${r.won}</div><div class="report-stat-lbl">Gagnés</div></div>
         <div class="report-stat"><div class="report-stat-val report-loss">${r.lost}</div><div class="report-stat-lbl">Perdus</div></div>
         <div class="report-stat"><div class="report-stat-val">${r.winRate}</div><div class="report-stat-lbl">Taux</div></div>
       </div>`;
-  } catch (e) {}
+  } catch (e) {
+    console.error('Erreur de chargement du dernier rapport:', e);
+  }
 }
 
 async function loadTicketsForDate(date) {
-  document.getElementById('tickets-date-label').textContent = `Date : ${date}`;
+  document.getElementById('tickets-date-label').textContent = `Date: ${date}`;
   try {
     const data = await fetch(`/api/tickets/${date}`).then(r => r.ok ? r.json() : null);
     if (!data || !data.tickets || !data.tickets.length) { renderTicketsEmpty(); return; }
     allTickets = data.tickets;
     filterTickets(currentFilter);
-  } catch (e) { renderTicketsEmpty(); }
+  } catch (e) { 
+    renderTicketsEmpty(); 
+    console.error('Erreur de chargement des tickets:', e);
+  }
 }
 
 function filterTickets(filter, btn) {
@@ -300,7 +318,7 @@ function renderTicketsEmpty() {
   document.getElementById('tickets-container').innerHTML = `
     <div class="empty-state">
       <div class="empty-icon">⚽</div>
-      <p>Aucun ticket disponible.<br>Lancez une analyse pour generer les 15 tickets.</p>
+      <p>Aucun ticket disponible.<br>Lancez une analyse pour générer les 15 tickets.</p>
       <button class="btn btn-primary" onclick="openAnalyzeModal()">Lancer l'analyse</button>
     </div>`;
 }
@@ -348,7 +366,7 @@ async function loadHistory() {
     }
     container.innerHTML = `
       <table class="history-table">
-        <thead><tr><th>Date</th><th>Tickets</th><th>Gagnes</th><th>Perdus</th><th>Taux</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Date</th><th>Tickets</th><th>Gagnés</th><th>Perdus</th><th>Taux</th><th>Actions</th></tr></thead>
         <tbody>${history.map(h => `
           <tr>
             <td class="date-cell">${h.date}</td>
@@ -362,6 +380,7 @@ async function loadHistory() {
       </table>`;
   } catch (e) {
     document.getElementById('history-container').innerHTML = '<div class="empty-state">Erreur.</div>';
+    console.error('Erreur de chargement de l\'historique:', e);
   }
 }
 
@@ -372,19 +391,21 @@ function viewDate(date) {
 }
 
 async function generateReportFor(date) {
-  if (!confirm(`Generer le rapport pour le ${date} ?`)) return;
-  await fetch('/api/report', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ date }) });
-  alert('Rapport en cours de generation.');
+  if (!confirm(`Générer le rapport pour le ${date}?`)) return;
+  await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date }) });
+  alert('Rapport en cours de génération.');
   loadHistory();
 }
 
 async function loadSettings() {
   try {
     const s = await fetch('/api/settings').then(r => r.json());
-    if (s.hasApiFootball) document.getElementById('cfg-football').placeholder = '(cle configuree)';
-    if (s.hasApiOdds) document.getElementById('cfg-odds').placeholder = '(cle configuree)';
-    if (s.hasAnthropic) document.getElementById('cfg-anthropic').placeholder = '(cle configuree)';
-  } catch (e) {}
+    if (s.hasApiFootball) document.getElementById('cfg-football').placeholder = '(clé configurée)';
+    if (s.hasApiOdds) document.getElementById('cfg-odds').placeholder = '(clé configurée)';
+    if (s.hasAnthropic) document.getElementById('cfg-anthropic').placeholder = '(clé configurée)';
+  } catch (e) {
+    console.error('Erreur de chargement des paramètres:', e);
+  }
 }
 
 async function saveSettings() {
@@ -393,30 +414,44 @@ async function saveSettings() {
   const football = document.getElementById('cfg-football').value.trim();
   const odds = document.getElementById('cfg-odds').value.trim();
   const anthropic = document.getElementById('cfg-anthropic').value.trim();
+  
   if (football) payload.apiFootballKey = football;
   if (odds) payload.apiOddsKey = odds;
   if (anthropic) payload.anthropicKey = anthropic;
-  if (!Object.keys(payload).length) { fb.className='feedback-msg feedback-err'; fb.textContent='Aucune cle.'; return; }
+  
+  if (!Object.keys(payload).length) { 
+    fb.className = 'feedback-msg feedback-err'; 
+    fb.textContent = 'Aucune clé.'; 
+    return; 
+  }
+  
   try {
-    const res = await fetch('/api/settings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const res = await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     if (res.ok) {
       fb.className = 'feedback-msg feedback-ok';
-      fb.textContent = 'Cles sauvegardees.';
+      fb.textContent = 'Clés sauvegardées.';
       document.getElementById('cfg-football').value = '';
       document.getElementById('cfg-odds').value = '';
       document.getElementById('cfg-anthropic').value = '';
       loadSettings();
       refreshDashboard();
       setTimeout(() => { fb.textContent = ''; }, 4000);
-    } else { fb.className='feedback-msg feedback-err'; fb.textContent='Erreur.'; }
-  } catch (e) { fb.className='feedback-msg feedback-err'; fb.textContent='Erreur reseau.'; }
+    } else { 
+      fb.className = 'feedback-msg feedback-err'; 
+      fb.textContent = 'Erreur serveur.'; 
+    }
+  } catch (e) { 
+    fb.className = 'feedback-msg feedback-err'; 
+    fb.textContent = 'Erreur réseau.'; 
+    console.error('Erreur lors de la sauvegarde:', e);
+  }
 }
 
 async function launchReport() {
   const date = document.getElementById('report-date').value;
-  if (!date) { alert('Selectionnez une date.'); return; }
-  await fetch('/api/report', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({date}) });
-  alert('Rapport lance.');
+  if (!date) { alert('Sélectionnez une date.'); return; }
+  await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date }) });
+  alert('Rapport lancé.');
   loadHistory();
 }
 
@@ -434,29 +469,46 @@ function closeAnalyzeModal() {
 
 async function launchAnalysis() {
   const date = document.getElementById('analyze-date').value;
-  if (!date) { alert('Selectionnez une date.'); return; }
+  if (!date) { alert('Sélectionnez une date.'); return; }
+  
   const btn = document.getElementById('analyze-btn');
   const progress = document.getElementById('analyze-progress');
   const fill = document.getElementById('progress-fill');
   const msg = document.getElementById('progress-msg');
   const result = document.getElementById('analyze-result');
+  
   btn.disabled = true;
   btn.textContent = 'En cours...';
   progress.style.display = 'block';
   result.textContent = '';
-  const steps = [[10,'Connexion...'],[25,'Matchs du jour...'],[45,'Cotes en temps reel...'],[65,'Analyse...'],[85,'Generation tickets...'],[100,'Finalisation...']];
+  
+  const steps = [
+    [10, 'Connexion...'],
+    [25, 'Matchs du jour...'],
+    [45, 'Cotes en temps réel...'],
+    [65, 'Analyse...'],
+    [85, 'Génération tickets...'],
+    [100, 'Finalisation...']
+  ];
+  
   let stepIdx = 0;
   const interval = setInterval(() => {
-    if (stepIdx < steps.length) { fill.style.width=steps[stepIdx][0]+'%'; msg.textContent=steps[stepIdx][1]; stepIdx++; }
+    if (stepIdx < steps.length) { 
+      fill.style.width = steps[stepIdx][0] + '%'; 
+      msg.textContent = steps[stepIdx][1]; 
+      stepIdx++; 
+    }
   }, 1800);
+  
   try {
-    const res = await fetch('/api/analyze', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({date}) });
+    const res = await fetch('/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date }) });
     clearInterval(interval);
+    
     if (res.ok) {
       fill.style.width = '100%';
-      msg.textContent = 'Succes !';
+      msg.textContent = 'Succès!';
       result.className = 'feedback-msg feedback-ok';
-      result.textContent = 'Tickets en cours de generation...';
+      result.textContent = 'Tickets en cours de génération...';
       setTimeout(() => {
         closeAnalyzeModal();
         document.getElementById('tickets-date-picker').value = date;
@@ -464,19 +516,21 @@ async function launchAnalysis() {
         switchTab('tickets');
         setTimeout(() => { loadTicketsForDate(date); refreshDashboard(); }, 15000);
       }, 2000);
-    } else { throw new Error('Erreur serveur'); }
+    } else { 
+      throw new Error('Erreur serveur'); 
+    }
   } catch (e) {
     clearInterval(interval);
     result.className = 'feedback-msg feedback-err';
-    result.textContent = 'Erreur : ' + e.message;
+    result.textContent = 'Erreur: ' + e.message;
     btn.disabled = false;
-    btn.textContent = "Reessayer";
+    btn.textContent = "Réessayer";
   }
 }
 
 function escHtml(str) {
   if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function formatOdds(val) {
