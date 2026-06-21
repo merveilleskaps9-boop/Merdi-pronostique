@@ -2,235 +2,170 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Football Pronostics AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>PronosAI - Expert Paris Sportifs</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/main.css">
 
 <link rel="manifest" href="/manifest.json">
+
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PronosAI">
+<link rel="apple-touch-icon" href="/image.png">
+
 <meta name="theme-color" content="#0a0a0c">
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/8615/8615336.png">
 </head>
 <body>
 <div class="app-shell">
-<button class="menu-btn" id="menu-btn">&#9776;</button>
-<div class="sidebar-overlay" id="sidebar-overlay"></div>
-<nav class="sidebar">
-<div class="sidebar-logo">
-<span class="logo-icon">&#9917;</span>
-<span class="logo-text">PronosAI</span>
-</div>
-<ul class="nav-links">
-<li><a href="#" class="nav-link active" data-tab="dashboard"><span class="nav-icon">&#9673;</span> Tableau de bord</a></li>
-<li><a href="#" class="nav-link" data-tab="tickets"><span class="nav-icon">&#9672;</span> Tickets du jour</a></li>
-<li><a href="#" class="nav-link" data-tab="manuel"><span class="nav-icon">&#9713;</span> Analyse manuelle</a></li>
-<li><a href="#" class="nav-link" data-tab="historique"><span class="nav-icon">&#9707;</span> Historique</a></li>
-<li><a href="#" class="nav-link" data-tab="config"><span class="nav-icon">&#9671;</span> Configuration</a></li>
-</ul>
-<div class="sidebar-clock">
-<div class="clock-label">Heure ET</div>
-<div class="clock-time" id="sidebar-clock">--:--:--</div>
-</div>
-</nav>
-<main class="main-content">
-<section id="tab-dashboard" class="tab-section active">
-<div class="page-header">
-<h1>Tableau de bord</h1>
-<div class="header-actions">
-<button class="btn btn-secondary" onclick="refreshDashboard()">Actualiser</button>
-<button class="btn btn-primary" onclick="openAnalyzeModal()">Lancer une analyse</button>
-</div>
-</div>
-<div class="stats-grid">
-<div class="stat-card"><div class="stat-label">Prochaine analyse</div><div class="stat-value" id="next-analysis">20h00</div><div class="stat-sub" id="next-analysis-in">--</div></div>
-<div class="stat-card"><div class="stat-label">Taux de reussite</div><div class="stat-value" id="win-rate">--</div><div class="stat-sub">sur les 30 derniers jours</div></div>
-<div class="stat-card"><div class="stat-label">API Football</div><div class="stat-value" id="api-football-remaining">--</div><div class="stat-sub">requetes restantes aujourd'hui</div></div>
-<div class="stat-card"><div class="stat-label">The Odds API</div><div class="stat-value" id="api-odds-remaining">--</div><div class="stat-sub">requetes restantes ce mois</div></div>
-</div>
-<div class="config-alert" id="config-alert" style="display:none;">
-<div class="alert-icon">!</div>
-<div class="alert-text"><strong>Configuration incomplete.</strong> Renseignez vos cles API dans Configuration.</div>
-<a href="#" class="btn btn-small btn-secondary" onclick="switchTab('config'); return false;">Configurer</a>
-</div>
-<div class="two-col">
-<div class="panel"><div class="panel-title">Journal d'activite</div><div id="activity-log" class="log-list"><div class="log-empty">Chargement...</div></div></div>
-<div class="panel"><div class="panel-title">Dernier rapport de performance</div><div id="latest-report"><div class="empty-state">Aucun rapport disponible.</div></div></div>
-</div>
-</section>
-<section id="tab-tickets" class="tab-section">
-<div class="page-header">
-<div><h1>Tickets du jour</h1><div class="page-sub" id="tickets-date-label">Chargement...</div></div>
-<div class="header-actions">
-<input type="date" id="tickets-date-picker" class="date-picker" onchange="loadTicketsForDate(this.value)">
-<button class="btn btn-primary" onclick="openAnalyzeModal()">Nouvelle analyse</button>
-</div>
-</div>
-
-<div class="sport-tabs-container">
-    <button class="sport-tab active" onclick="changerSport('football')">⚽ FOOTBALL</button>
-    <button class="sport-tab" onclick="changerSport('nba')">🏀 BASKET-BALL</button>
-    <button class="sport-tab" onclick="changerSport('mlb')">⚾ BASEBALL</button>
-</div>
-
-<style>
-.sport-tabs-container {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 25px;
-    background-color: #161b22;
-    padding: 8px;
-    border-radius: 12px;
-    border: 1px solid #30363d;
-    width: fit-content;
-}
-
-.sport-tab {
-    background: transparent;
-    border: none;
-    color: #8b949e;
-    padding: 12px 24px;
-    font-size: 14px;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.sport-tab.active {
-    background-color: #10b981;
-    color: #ffffff;
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-}
-
-.sport-tab:hover:not(.active) {
-    background-color: #21262d;
-    color: #ffffff;
-}
-</style>
-<div class="ticket-filters">
-<button class="filter-btn active" data-filter="all" onclick="filterTickets('all', this)">Tous</button>
-<button class="filter-btn" data-filter="Haute Performance" onclick="filterTickets('Haute Performance', this)">Haute Performance</button>
-<button class="filter-btn" data-filter="Securite" onclick="filterTickets('Securite', this)">Securite</button>
-<button class="filter-btn" data-filter="Securite et Haute Performance" onclick="filterTickets('Securite et Haute Performance', this)">Securite + HP</button>
-</div>
-<div id="tickets-container">
-<div class="empty-state"><div class="empty-icon">&#9917;</div><p>Aucun ticket disponible.<br>Lancez une analyse pour generer les tickets.</p><button class="btn btn-primary" onclick="openAnalyzeModal()">Lancer l'analyse</button></div>
-</div>
-</section>
-<section id="tab-manuel" class="tab-section">
-<div class="page-header"><h1>Analyse manuelle</h1></div>
-<div class="panel" style="margin-bottom:16px;">
-<div class="panel-title">Uploader vos fichiers</div>
-<div class="form-group">
-<label>Date des matchs</label>
-<input type="date" id="manuel-date" class="date-picker-inline">
-</div>
-<div class="form-group">
-<label>Fichiers (max 20 : screenshots Bet365, classements Aiscore, PDFs)</label>
-<div id="drop-zone" onclick="document.getElementById('file-input').click()" style="border:2px dashed var(--border-strong);border-radius:var(--radius-lg);padding:2rem;text-align:center;cursor:pointer;color:var(--text-muted);margin-bottom:12px;">
-<div style="font-size:28px;margin-bottom:8px;">&#128193;</div>
-<div>Cliquer pour selectionner ou glisser-deposer</div>
-<div style="font-size:11px;margin-top:4px;">JPG, PNG, PDF acceptes - max 20 fichiers</div>
-</div>
-<input type="file" id="file-input" multiple accept=".jpg,.jpeg,.png,.gif,.webp,.pdf" style="display:none" onchange="handleFileSelect(this.files)">
-<div id="file-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>
-</div>
-<div class="form-group" style="margin-bottom: 15px;">
-  <label style="display: block; margin-bottom: 5px; color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Sport a analyser</label>
-  <select id="manuel-sport" style="width: 100%; padding: 10px; border-radius: var(--radius); border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-primary); font-family: var(--font-mono);">
-    <option value="football">⚽ Football</option>
-    <option value="basketball">🏀 Basket-ball (NBA)</option>
-    <option value="baseball">⚾ Baseball (MLB)</option>
-  </select>
-</div>
-<div class="form-group">
-<label>Notes supplementaires (optionnel)</label>
-<textarea id="manuel-notes" style="width:100%;background:var(--bg-surface);border:1px solid var(--border-strong);border-radius:var(--radius);color:var(--text-primary);padding:9px 12px;font-size:13px;font-family:var(--font-mono);min-height:80px;resize:vertical;" placeholder="Blessures importantes, absences, contexte supplementaire..."></textarea>
-</div>
-<div id="manuel-progress" style="display:none;margin-bottom:12px;">
-<div class="progress-label" id="manuel-progress-msg">Analyse en cours...</div>
-<div class="progress-track"><div class="progress-fill" id="manuel-progress-fill" style="width:0%"></div></div>
-</div>
-<div id="manuel-result" class="feedback-msg"></div>
-<button class="btn btn-primary" onclick="launchManualAnalysis()" id="manuel-btn">Analyser et generer les tickets</button>
-</div>
-</section>
-<section id="tab-historique" class="tab-section">
-<div class="page-header"><h1>Historique</h1></div>
-<div id="history-container"><div class="empty-state">Chargement...</div></div>
-</section>
-<section id="tab-config" class="tab-section">
-<div class="page-header"><h1>Configuration</h1></div>
-<div class="config-grid">
-<div class="panel">
-<div class="panel-title">Cles API</div>
-<div class="form-group">
-<label>API-Football</label>
-<div class="input-with-badge"><input type="password" id="cfg-football" placeholder="Coller votre cle ici" autocomplete="off"><span class="free-badge">gratuit</span></div>
-<div class="field-help"><a href="https://www.football-data.org/client/register" target="_blank">football-data.org - plan Free</a></div>
-</div>
-<div class="form-group">
-<label>The Odds API</label>
-<div class="input-with-badge"><input type="password" id="cfg-odds" placeholder="Coller votre cle ici" autocomplete="off"><span class="free-badge">500/mois gratuit</span></div>
-<div class="field-help"><a href="https://the-odds-api.com" target="_blank">the-odds-api.com - plan Free</a></div>
-</div>
-<div class="form-group">
-<label>Anthropic Claude API <span class="required-badge">Requis</span></label>
-<input type="password" id="cfg-anthropic" placeholder="sk-ant-..." autocomplete="off">
-<div class="field-help"><a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com/settings/keys</a></div>
-</div>
-<div class="form-group">
-<label>Google Gemini API <span class="required-badge" style="background:#4285f4;">Nouveau</span></label>
-<input type="password" id="cfg-gemini" placeholder="AIzaSy..." autocomplete="off">
-<div class="field-help"><a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com/app/apikey</a></div>
-</div>
-<button class="btn btn-primary" onclick="saveSettings()">Sauvegarder les cles</button>
-<div id="settings-feedback" class="feedback-msg"></div>
-</div>
-<div class="panel">
-<div class="panel-title">Consommation API</div>
-<div class="usage-item"><div class="usage-header"><span>API-Football (quotidien)</span><span id="usage-football">-- / 100</span></div><div class="usage-bar"><div class="usage-fill" id="bar-football" style="width:0%"></div></div></div>
-<div class="usage-item"><div class="usage-header"><span>The Odds API (mensuel)</span><span id="usage-odds">-- / 500</span></div><div class="usage-bar"><div class="usage-fill" id="bar-odds" style="width:0%"></div></div></div>
-<div class="panel-title" style="margin-top:1.5rem;">Automatisation</div>
-<div class="schedule-info">
-<div class="schedule-row"><span class="schedule-label">Analyse du soir</span><span class="schedule-value">20h00 ET (Ven/Sam/Dim)</span></div>
-<div class="schedule-row"><span class="schedule-label">Rapport du matin</span><span class="schedule-value">07h00 ET (chaque jour)</span></div>
-<div class="schedule-row"><span class="schedule-label">Tickets par analyse</span><span class="schedule-value">15 (5 HP + 5 SEC + 5 SEC+HP)</span></div>
-</div>
-<div class="panel-title" style="margin-top:1.5rem;">Rapport manuel</div>
-<div class="form-group"><label>Date</label><input type="date" id="report-date" class="date-picker-inline"></div>
-<button class="btn btn-secondary" onclick="launchReport()">Generer le rapport</button>
-</div>
-</div>
-</section>
-</main>
-</div>
-<div id="analyze-modal" class="modal-overlay" style="display:none;">
-<div class="modal">
-<div class="modal-header"><h2>Lancer une analyse</h2><button class="modal-close" onclick="closeAnalyzeModal()">x</button></div>
-<div class="modal-body">
-<div class="form-group"><label>Date des matchs</label><input type="date" id="analyze-date" class="date-picker-inline"></div>
-<div id="analyze-progress" style="display:none;"><div class="progress-label" id="progress-msg">Initialisation...</div><div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div></div>
-<div id="analyze-result" class="feedback-msg"></div>
-</div>
-<div class="modal-footer">
-<button class="btn btn-secondary" onclick="closeAnalyzeModal()">Annuler</button>
-<button class="btn btn-primary" id="analyze-btn" onclick="launchAnalysis()">Lancer l'analyse</button>
-</div>
-</div>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  
+  <button class="menu-btn" id="menu-btn">&#9776;</button>
+  
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <img src="/image.png" alt="Logo" style="width:32px; height:32px; border-radius:8px;">
+      <span class="logo-text">PronosAI</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#" class="nav-link active" data-tab="dashboard"><span class="nav-icon">&#9673;</span> Tableau de bord</a></li>
+      <li><a href="#" class="nav-link" data-tab="tickets"><span class="nav-icon">&#9672;</span> Tickets du jour</a></li>
+      <li><a href="#" class="nav-link" data-tab="manuel"><span class="nav-icon">&#9713;</span> Analyse manuelle</a></li>
+      <li><a href="#" class="nav-link" data-tab="historique"><span class="nav-icon">&#9707;</span> Historique</a></li>
+      <li><a href="#" class="nav-link" data-tab="config"><span class="nav-icon">&#9671;</span> Configuration</a></li>
+    </ul>
+    <div class="sidebar-clock">
+      <div class="clock-label">Heure ET</div>
+      <div class="clock-time" id="sidebar-clock">--:--:--</div>
+    </div>
+  </nav>
+  <main class="main-content">
+    <section id="tab-dashboard" class="tab-section active">
+      <div class="page-header">
+        <h1>Tableau de bord</h1>
+        <div class="header-actions">
+          <button class="btn btn-secondary" onclick="refreshDashboard()">Actualiser</button>
+          <button class="btn btn-primary" onclick="switchTab('manuel')">Lancer une analyse</button>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Prochaine analyse</div><div class="stat-value" id="next-analysis">20h00</div><div class="stat-sub" id="next-analysis-in">--</div></div>
+        <div class="stat-card"><div class="stat-label">Taux de reussite</div><div class="stat-value" id="win-rate">--</div><div class="stat-sub">sur les 30 derniers jours</div></div>
+        <div class="stat-card"><div class="stat-label">API Football</div><div class="stat-value" id="api-football-remaining">--</div><div class="stat-sub">requetes restantes</div></div>
+        <div class="stat-card"><div class="stat-label">Google Gemini</div><div class="stat-value">OK</div><div class="stat-sub">IA opérationnelle</div></div>
+      </div>
+      <div class="config-alert" id="config-alert" style="display:none;">
+        <div class="alert-icon">!</div>
+        <div class="alert-text"><strong>Configuration incomplète.</strong> Renseignez vos clés API dans Configuration.</div>
+        <a href="#" class="btn btn-small btn-secondary" onclick="switchTab('config'); return false;">Configurer</a>
+      </div>
+      <div class="two-col">
+        <div class="panel"><div class="panel-title">Journal d'activité</div><div id="activity-log" class="log-list"><div class="log-empty">Chargement...</div></div></div>
+        <div class="panel"><div class="panel-title">Dernière performance</div><div id="latest-report"><div class="empty-state">Aucun rapport disponible.</div></div></div>
+      </div>
+    </section>
+    <section id="tab-tickets" class="tab-section">
+      <div class="page-header">
+        <div><h1>Tickets du jour</h1><div class="page-sub" id="tickets-date-label">Chargement...</div></div>
+        <div class="header-actions">
+          <input type="date" id="tickets-date-picker" class="date-picker" onchange="loadTicketsForDate(this.value)">
+        </div>
+      </div>
+      <div class="sport-tabs-container">
+          <button class="sport-tab active" onclick="changerSport('football')">⚽ FOOTBALL</button>
+          <button class="sport-tab" onclick="changerSport('nba')">🏀 NBA</button>
+          <button class="sport-tab" onclick="changerSport('mlb')">⚾ MLB</button>
+      </div>
+      <div class="ticket-filters">
+        <button class="filter-btn active" data-filter="all" onclick="filterTickets('all', this)">Tous</button>
+        <button class="filter-btn" data-filter="Haute Performance" onclick="filterTickets('Haute Performance', this)">HP</button>
+        <button class="filter-btn" data-filter="Securite" onclick="filterTickets('Securite', this)">Securité</button>
+        <button class="filter-btn" data-filter="Securite et Haute Performance" onclick="filterTickets('Securite et Haute Performance', this)">SEC+HP</button>
+      </div>
+      <div id="tickets-container">
+        <div class="empty-state"><div class="empty-icon">&#9917;</div><p>Aucun ticket disponible.</p><button class="btn btn-primary" onclick="switchTab('manuel')">Lancer l'analyse</button></div>
+      </div>
+    </section>
+    <section id="tab-manuel" class="tab-section">
+      <div class="page-header"><h1>Analyse manuelle</h1></div>
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-title">Uploader vos fichiers</div>
+        <div class="form-group">
+          <label>Date des matchs</label>
+          <input type="date" id="manuel-date" class="date-picker-inline">
+        </div>
+        <div class="form-group">
+          <label>Sport à analyser</label>
+          <select id="manuel-sport" class="select-premium">
+            <option value="football">⚽ Football</option>
+            <option value="basketball">🏀 Basket-ball (NBA)</option>
+            <option value="baseball">⚾ Baseball (MLB)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Captures d'écran ou PDFs (Bet365, Aiscore...)</label>
+          <div id="drop-zone" onclick="document.getElementById('file-input').click()" class="drop-zone-premium">
+            <div style="font-size:32px;margin-bottom:10px;">🖼️</div>
+            <div>Cliquer pour uploader (Max 20)</div>
+          </div>
+          <input type="file" id="file-input" multiple accept=".jpg,.jpeg,.png,.gif,.webp,.pdf" style="display:none" onchange="handleFileSelect(this.files)">
+          <div id="file-preview" class="file-preview-grid"></div>
+        </div>
+        <div class="form-group">
+          <label>Notes supplémentaires (optionnel)</label>
+          <textarea id="manuel-notes" class="textarea-premium" placeholder="Absences, contexte, blessures..."></textarea>
+        </div>
+        <div id="manuel-progress" style="display:none;margin-bottom:12px;">
+          <div class="progress-label" id="manuel-progress-msg">Analyse en cours...</div>
+          <div class="progress-track"><div class="progress-fill" id="manuel-progress-fill" style="width:0%"></div></div>
+        </div>
+        <div id="manuel-result" class="feedback-msg"></div>
+        <button class="btn btn-primary btn-full" onclick="launchManualAnalysis()" id="manuel-btn">Analyser et générer les tickets</button>
+      </div>
+    </section>
+    <section id="tab-historique" class="tab-section">
+      <div class="page-header"><h1>Historique</h1></div>
+      <div id="history-container"><div class="empty-state">Chargement...</div></div>
+    </section>
+    <section id="tab-config" class="tab-section">
+      <div class="page-header"><h1>Configuration</h1></div>
+      <div class="config-grid">
+        <div class="panel">
+          <div class="panel-title">Clés API</div>
+          <div class="form-group">
+            <label>Anthropic Claude API <span class="required-badge">Requis</span></label>
+            <input type="password" id="cfg-anthropic" placeholder="sk-ant-...">
+          </div>
+          <div class="form-group">
+            <label>Google Gemini API <span class="required-badge" style="background:#4285f4;">Nouveau</span></label>
+            <input type="password" id="cfg-gemini" placeholder="AIzaSy...">
+          </div>
+          <div class="form-group">
+            <label>API-Football</label>
+            <input type="password" id="cfg-football" placeholder="Clé Football-data.org">
+          </div>
+          <div class="form-group">
+            <label>The Odds API</label>
+            <input type="password" id="cfg-odds" placeholder="Clé The-odds-api.com">
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()">Sauvegarder les clés</button>
+          <div id="settings-feedback" class="feedback-msg"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Infos API</div>
+          <div class="usage-item"><div class="usage-header"><span>API-Football</span><span id="usage-football">-- / 100</span></div><div class="usage-bar"><div class="usage-fill" id="bar-football" style="width:0%"></div></div></div>
+          <div class="usage-item"><div class="usage-header"><span>The Odds API</span><span id="usage-odds">-- / 500</span></div><div class="usage-bar"><div class="usage-fill" id="bar-odds" style="width:0%"></div></div></div>
+        </div>
+      </div>
+    </section>
+  </main>
 </div>
 <script src="/js/app.js"></script>
-
 <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js');
-  }
+  // Activation Service Worker pour PWA
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }
 </script>
 </body>
 </html>
