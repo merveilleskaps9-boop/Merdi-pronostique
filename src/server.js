@@ -1,3 +1,25 @@
+'use strict';
+
+require('dotenv').config();
+process.env.TZ = 'America/Toronto';
+
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const Anthropic = require('@anthropic-ai/sdk');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const storage = require('./storage');
+const scheduler = require('./scheduler');
+const { getFixturesForTargetLeagues, enrichFixtureWithStats } = require('./apiFootball');
+const { getAllOddsForDate, extractBestOdds } = require('./apiOdds');
+const { generateTickets, generateMorningReport } = require('./analyzer');
+const { upload, extractTextFromPDF, fileToBase64, getMimeType, cleanupFiles } = require('./uploadHandler');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+app.use(express.static(path.join(__dirname, '..', 'public')));
+
 // Fonction pour construire les instructions selon le sport
 function buildPrompt(sport, date, pdfTexts, notes) {
   let prompt = `Tu es un expert en analyse de paris sportifs. Date d'analyse : ${date}.\n`;
@@ -53,6 +75,71 @@ function buildPrompt(sport, date, pdfTexts, notes) {
   return prompt;
 }
 
+async function runEveningAnalysis(date) {
+  const settings = storage.loadSettings();
+  const apiFootball = settings.apiFootballKey || process.env.API_FOOTBALL_KEY;
+  const apiOdds = settings.apiOddsKey || process.env.ODDS_API_KEY;
+  const apiAnthropic = settings.anthropicKey || process.env.ANTHROPIC_API_KEY;
+
+  if (!apiAnthropic) throw new Error('Cle Anthropic manquante');
+
+  storage.addActivityLog(`Debut analyse pour ${date}`, 'info');
+
+  let fixtures = [];
+  let oddsData = [];
+  let oddsAvailable = false;
+  let usage = storage.loadApiUsage();
+
+  if (apiFootball) {
+    try {
+      storage.addActivityLog('Recuperation des fixtures via API-Football...', 'info');
+      const raw = await getFixturesForTargetLeagues(apiFootball, date);
+      storage.addActivityLog(`${raw.length} matchs trouves`, 'info');
+      fixtures = raw.slice(0, 30);
+      usage.footballDailyUsed = Math.min(usage.footballDailyUsed + 1, 100);
+    } catch (e) {
+      storage.addActivityLog(`Erreur API-Football: ${e.message}`, 'warn');
+    }
+  }
+
+  if (apiOdds) {
+    try {
+      storage.addActivityLog('Recuperation des cotes via The Odds API...', 'info');
+      const { odds, remaining, used } = await getAllOddsForDate(apiOdds, date);
+      oddsData = odds.map(extractBestOdds);
+      if (used !== null) usage.oddsMonthlyUsed = used;
+      if (oddsData.length > 0) oddsAvailable = true;
+      storage.addActivityLog(`${oddsData.length} evenements avec cotes recuperes`, 'info');
+    } catch (e) {
+      storage.addActivityLog(`Cotes non disponibles: ${e.message}`, 'warn');
+    }
+  }
+
+  if (!oddsAvailable) {
+    storage.addActivityLog('Analyse sans cotes - Claude analysera forme et enjeux uniquement', 'info');
+  }
+
+  storage.saveApiUsage(usage);
+  storage.addActivityLog('Generation des 5 tickets via Claude AI...', 'info');
+  const ticketsData = await generateTickets(apiAnthropic, fixtures, oddsData, date, oddsAvailable);
+  storage.saveTickets(date, ticketsData);
+  storage.addActivityLog(`5 tickets generes et sauvegardes pour ${date}`, 'success');
+  return ticketsData;
+}
+
+async function runMorningReport(date) {
+  const settings = storage.loadSettings();
+  const apiAnthropic = settings.anthropicKey || process.env.ANTHROPIC_API_KEY;
+  if (!apiAnthropic) throw new Error('Cle Anthropic manquante');
+  const tickets = storage.loadTickets(date);
+  if (!tickets) throw new Error(`Aucun ticket trouve pour ${date}`);
+  storage.addActivityLog(`Debut rapport du matin pour ${date}`, 'info');
+  const report = await generateMorningReport(apiAnthropic, tickets.tickets || [], []);
+  storage.saveReport(date, report);
+  storage.addActivityLog(`Rapport du matin genere pour ${date}`, 'success');
+  return report;
+}
+
 // ---- Route analyse manuelle avec images et PDFs ----
 app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
   const files = req.files || [];
@@ -87,19 +174,16 @@ app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
           pdfTexts += `\n--- PDF: ${file.originalname} ---\n${text}\n`;
         } else {
           const base64 = fileToBase64(file.path);
-          // Normalisation stricte du type MIME pour Anthropic
           let mimeType = file.mimetype || getMimeType(file.originalname);
           
-          // Fallback base sur l'extension si le mimetype est absent ou invalide
           if (!mimeType || !mimeType.startsWith('image/')) {
             if (ext === '.png') mimeType = 'image/png';
             else if (ext === '.jpg' || ext === '.jpeg') mimeType = 'image/jpeg';
             else if (ext === '.webp') mimeType = 'image/webp';
             else if (ext === '.gif') mimeType = 'image/gif';
-            else mimeType = 'image/jpeg'; // Valeur par defaut de securite
+            else mimeType = 'image/jpeg';
           }
 
-          // Validation finale: Anthropic n'accepte QUE ces 4 formats
           const validMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
           if (validMimeTypes.includes(mimeType)) {
              messageContent.push({
@@ -112,11 +196,9 @@ app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
         }
       }
 
-      // Appel de la fonction pour generer les instructions en fonction du sport
       const textPrompt = buildPrompt(sport, date, pdfTexts, notes);
       messageContent.push({ type: 'text', text: textPrompt });
 
-      // Verification avant l'appel a l'API pour eviter d'envoyer une requete vide
       if (messageContent.length === 1) {
           throw new Error("Aucune image valide ou texte PDF n'a pu etre extrait des fichiers fournis.");
       }
@@ -153,3 +235,119 @@ app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
     }
   })();
 });
+
+// ---- Routes API standard ----
+app.get('/api/status', (req, res) => {
+  const usage = storage.loadApiUsage();
+  const settings = storage.loadSettings();
+  const latestDate = storage.getLatestDate();
+  const now = new Date().toLocaleString('fr-CA', { timeZone: 'America/Toronto' });
+  res.json({
+    status: 'ok', currentTime: now, timezone: 'America/Toronto',
+    latestAnalysis: latestDate, apiUsage: usage,
+    configured: {
+      apiFootball: !!(settings.apiFootballKey || process.env.API_FOOTBALL_KEY),
+      apiOdds: !!(settings.apiOddsKey || process.env.ODDS_API_KEY),
+      anthropic: !!(settings.anthropicKey || process.env.ANTHROPIC_API_KEY)
+    }
+  });
+});
+
+app.get('/api/tickets/:date', (req, res) => {
+  const data = storage.loadTickets(req.params.date);
+  if (!data) return res.status(404).json({ error: 'Aucun ticket pour cette date' });
+  res.json(data);
+});
+
+app.get('/api/tickets', (req, res) => {
+  const latestDate = storage.getLatestDate();
+  if (!latestDate) return res.json({ tickets: [], date: null });
+  const data = storage.loadTickets(latestDate);
+  res.json(data || { tickets: [], date: latestDate });
+});
+
+app.get('/api/report/:date', (req, res) => {
+  const data = storage.loadReport(req.params.date);
+  if (!data) return res.status(404).json({ error: 'Aucun rapport pour cette date' });
+  res.json(data);
+});
+
+app.get('/api/history', (req, res) => {
+  const dates = storage.getAllDates();
+  const history = dates.map(date => {
+    const tickets = storage.loadTickets(date);
+    const report = storage.loadReport(date);
+    return {
+      date,
+      ticketsCount: tickets ? (tickets.tickets || []).length : 0,
+      report: report ? { won: report.summary.won, lost: report.summary.lost, winRate: report.summary.winRate } : null
+    };
+  });
+  res.json(history);
+});
+
+app.get('/api/logs', (req, res) => {
+  const limit = parseInt(req.query.limit) || 50;
+  res.json(storage.getActivityLogs(limit));
+});
+
+app.post('/api/analyze', async (req, res) => {
+  const { date } = req.body;
+  if (!date) return res.status(400).json({ error: 'Date requise' });
+  storage.addActivityLog(`Analyse automatique lancee pour ${date}`, 'info');
+  res.json({ message: 'Analyse lancee en arriere-plan', date });
+  runEveningAnalysis(date).catch(err => {
+    storage.addActivityLog(`Erreur analyse: ${err.message}`, 'error');
+  });
+});
+
+app.post('/api/report', async (req, res) => {
+  const { date } = req.body;
+  if (!date) return res.status(400).json({ error: 'Date requise' });
+  res.json({ message: 'Rapport lance en arriere-plan', date });
+  runMorningReport(date).catch(err => {
+    storage.addActivityLog(`Erreur rapport: ${err.message}`, 'error');
+  });
+});
+
+app.post('/api/settings', (req, res) => {
+  const { apiFootballKey, apiOddsKey, anthropicKey, geminiKey } = req.body;
+  const current = storage.loadSettings();
+  const updated = {
+    ...current,
+    ...(apiFootballKey !== undefined && { apiFootballKey }),
+    ...(apiOddsKey !== undefined && { apiOddsKey }),
+    ...(anthropicKey !== undefined && { anthropicKey }),
+    ...(geminiKey !== undefined && { geminiKey }),
+    updatedAt: new Date().toISOString()
+  };
+  storage.saveSettings(updated);
+  storage.addActivityLog('Parametres sauvegardes', 'success');
+  res.json({ success: true });
+});
+
+app.get('/api/settings', (req, res) => {
+  const s = storage.loadSettings();
+  res.json({
+    hasApiFootball: !!s.apiFootballKey || !!process.env.API_FOOTBALL_KEY,
+    hasApiOdds: !!s.apiOddsKey || !!process.env.ODDS_API_KEY,
+    hasAnthropic: !!s.anthropicKey || !!process.env.ANTHROPIC_API_KEY,
+    hasGemini: !!s.geminiKey || !!process.env.GEMINI_API_KEY
+  });
+});
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`\n=================================================`);
+  console.log(` Football Pronostics - Serveur actif`);
+  console.log(` http://localhost:${PORT}`);
+  console.log(`=================================================\n`);
+  storage.addActivityLog(`Serveur demarre sur le port ${PORT}`, 'success');
+  scheduler.initScheduler(runEveningAnalysis, runMorningReport);
+});
+
+module.exports = app;

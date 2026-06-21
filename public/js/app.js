@@ -5,7 +5,6 @@ let currentFilter = 'all';
 let autoCloseTimer = null;
 let selectedFiles = [];
 
-// Fonction utilitaire pour obtenir la date locale au format YYYY-MM-DD
 function getLocalYYYYMMDD(timestamp) {
   const d = new Date(new Date(timestamp).toLocaleString('en-US', { timeZone: 'America/Toronto' }));
   const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -34,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(refreshDashboard, 30000);
 });
 
-// ---- Sidebar mobile ----
 function initSidebar() {
   const menuBtn = document.getElementById('menu-btn');
   const sidebar = document.querySelector('.sidebar');
@@ -62,7 +60,6 @@ function initSidebar() {
   });
 }
 
-// ---- Nav ----
 function initNav() {
   document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', e => {
@@ -79,7 +76,6 @@ function switchTab(name) {
   document.querySelector(`[data-tab="${name}"]`).classList.add('active');
 }
 
-// ---- Clock ----
 function initClock() {
   function update() {
     const now = new Date();
@@ -90,25 +86,12 @@ function initClock() {
   setInterval(update, 1000);
 }
 
-// ---- Drop zone fichiers ----
 function initDropZone() {
   const dropZone = document.getElementById('drop-zone');
   if (!dropZone) return;
-
-  dropZone.addEventListener('dragover', e => {
-    e.preventDefault();
-    dropZone.style.borderColor = 'var(--accent)';
-  });
-
-  dropZone.addEventListener('dragleave', () => {
-    dropZone.style.borderColor = 'var(--border-strong)';
-  });
-
-  dropZone.addEventListener('drop', e => {
-    e.preventDefault();
-    dropZone.style.borderColor = 'var(--border-strong)';
-    handleFileSelect(e.dataTransfer.files);
-  });
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = 'var(--accent)'; });
+  dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--border-strong)'; });
+  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.style.borderColor = 'var(--border-strong)'; handleFileSelect(e.dataTransfer.files); });
 }
 
 function handleFileSelect(files) {
@@ -132,7 +115,7 @@ function renderFilePreview() {
     </div>`;
   }).join('');
   const count = document.getElementById('drop-zone');
-  if (count) count.querySelector('div:nth-child(2)').textContent = `${selectedFiles.length} fichier(s) sélectionné(s) - Cliquer pour en ajouter`;
+  if (count) count.querySelector('div:nth-child(2)').textContent = `${selectedFiles.length} fichier(s) selectionne(s) - Cliquer pour en ajouter`;
 }
 
 function removeFile(index) {
@@ -142,7 +125,7 @@ function removeFile(index) {
 
 async function launchManualAnalysis() {
   const date = document.getElementById('manuel-date').value;
-  if (!date) { alert('Sélectionnez une date.'); return; }
+  if (!date) { alert('Selectionnez une date.'); return; }
   if (!selectedFiles.length) { alert('Ajoutez au moins un fichier (screenshot ou PDF).'); return; }
 
   const btn = document.getElementById('manuel-btn');
@@ -156,27 +139,16 @@ async function launchManualAnalysis() {
   progress.style.display = 'block';
   result.textContent = '';
 
-  const steps = [
-    [15, 'Préparation des fichiers...'],
-    [35, 'Envoi vers Claude AI...'],
-    [60, 'Lecture des images et PDFs...'],
-    [80, 'Génération des tickets...'],
-    [100, 'Finalisation...']
-  ];
-
+  const steps = [[15, 'Preparation des fichiers...'],[35, 'Envoi aux IAs...'],[60, 'Lecture des images et PDFs...'],[80, 'Generation des tickets...'],[100, 'Finalisation...']];
   let stepIdx = 0;
   const interval = setInterval(() => {
-    if (stepIdx < steps.length) {
-      fill.style.width = steps[stepIdx][0] + '%';
-      msg.textContent = steps[stepIdx][1];
-      stepIdx++;
-    }
+    if (stepIdx < steps.length) { fill.style.width = steps[stepIdx][0] + '%'; msg.textContent = steps[stepIdx][1]; stepIdx++; }
   }, 2000);
 
   try {
     const formData = new FormData();
     formData.append('date', date);
-
+    
     const sportSelect = document.getElementById('manuel-sport');
     const sport = sportSelect ? sportSelect.value : 'football';
     formData.append('sport', sport);
@@ -191,9 +163,9 @@ async function launchManualAnalysis() {
 
     if (res.ok) {
       fill.style.width = '100%';
-      msg.textContent = 'Analyse lancée avec succès!';
+      msg.textContent = 'Analyse lancee avec succes!';
       result.className = 'feedback-msg feedback-ok';
-      result.textContent = `Les tickets de ${sport} sont en cours de génération. Vérifiez dans 30 secondes dans "Tickets du jour".`;
+      result.textContent = `Les tickets de ${sport} sont en cours de generation. Verifiez dans 30 secondes dans "Tickets du jour".`;
       setTimeout(() => {
         document.getElementById('tickets-date-picker').value = date;
         loadTicketsForDate(date);
@@ -203,27 +175,22 @@ async function launchManualAnalysis() {
       selectedFiles = [];
       renderFilePreview();
       document.getElementById('manuel-notes').value = '';
-    } else {
-      throw new Error('Erreur serveur');
-    }
+    } else { throw new Error('Erreur serveur'); }
   } catch (e) {
     clearInterval(interval);
     result.className = 'feedback-msg feedback-err';
     result.textContent = 'Erreur: ' + e.message;
     btn.disabled = false;
-    btn.textContent = 'Analyser et générer les tickets ↗';
+    btn.textContent = 'Analyser et generer les tickets ↗';
   }
 }
 
-// ---- Dashboard ----
 async function refreshDashboard() {
   try {
     const status = await fetch('/api/status').then(r => r.json());
     updateStatsFromStatus(status);
     checkConfigAlert(status);
-  } catch (e) {
-    console.error('Erreur lors du rafraîchissement du statut:', e);
-  }
+  } catch (e) { console.error('Erreur lors du rafraichissement:', e); }
   await loadLogs();
   await loadLatestReport();
 }
@@ -247,27 +214,20 @@ function updateStatsFromStatus(status) {
 
 function checkConfigAlert(status) {
   const alert = document.getElementById('config-alert');
-  if (!status.configured || !status.configured.anthropic) {
-    alert.style.display = 'flex';
-  } else {
-    alert.style.display = 'none';
-  }
+  if (!status.configured || !status.configured.anthropic) { alert.style.display = 'flex'; } else { alert.style.display = 'none'; }
 }
 
 async function loadLogs() {
   try {
     const logs = await fetch('/api/logs?limit=10').then(r => r.json());
     const container = document.getElementById('activity-log');
-    if (!logs.length) { container.innerHTML = '<div class="log-empty">Aucune activité récente.</div>'; return; }
+    if (!logs.length) { container.innerHTML = '<div class="log-empty">Aucune activite recente.</div>'; return; }
     container.innerHTML = logs.map(l => {
       const typeClass = { success: 'dot-success', error: 'dot-error', warn: 'dot-warn', info: 'dot-info' }[l.type] || 'dot-info';
       const time = new Date(l.timestamp).toLocaleTimeString('fr-CA', { timeZone: 'America/Toronto', hour: '2-digit', minute: '2-digit' });
       return `<div class="log-item"><span class="log-dot ${typeClass}"></span><span class="log-msg">${escHtml(l.message)}</span><span class="log-time">${time}</span></div>`;
     }).join('');
-  } catch (e) {
-    document.getElementById('activity-log').innerHTML = '<div class="log-empty">Erreur chargement journal.</div>';
-    console.error('Erreur de chargement des logs:', e);
-  }
+  } catch (e) { document.getElementById('activity-log').innerHTML = '<div class="log-empty">Erreur chargement journal.</div>'; }
 }
 
 async function loadLatestReport() {
@@ -283,13 +243,11 @@ async function loadLatestReport() {
     document.getElementById('win-rate').textContent = r.winRate || '--';
     document.getElementById('latest-report').innerHTML = `
       <div class="report-summary">
-        <div class="report-stat"><div class="report-stat-val report-win">${r.won}</div><div class="report-stat-lbl">Gagnés</div></div>
+        <div class="report-stat"><div class="report-stat-val report-win">${r.won}</div><div class="report-stat-lbl">Gagnes</div></div>
         <div class="report-stat"><div class="report-stat-val report-loss">${r.lost}</div><div class="report-stat-lbl">Perdus</div></div>
         <div class="report-stat"><div class="report-stat-val">${r.winRate}</div><div class="report-stat-lbl">Taux</div></div>
       </div>`;
-  } catch (e) {
-    console.error('Erreur de chargement du dernier rapport:', e);
-  }
+  } catch (e) {}
 }
 
 async function loadTicketsForDate(date) {
@@ -299,10 +257,7 @@ async function loadTicketsForDate(date) {
     if (!data || !data.tickets || !data.tickets.length) { renderTicketsEmpty(); return; }
     allTickets = data.tickets;
     filterTickets(currentFilter);
-  } catch (e) { 
-    renderTicketsEmpty(); 
-    console.error('Erreur de chargement des tickets:', e);
-  }
+  } catch (e) { renderTicketsEmpty(); }
 }
 
 function filterTickets(filter, btn) {
@@ -323,15 +278,14 @@ function renderTickets(tickets) {
 function renderTicketsEmpty() {
   document.getElementById('tickets-container').innerHTML = `
     <div class="empty-state">
-      <div class="empty-icon">⚽</div>
-      <p>Aucun ticket disponible.<br>Lancez une analyse pour générer les tickets.</p>
+      <div class="empty-icon">&#9917;</div>
+      <p>Aucun ticket disponible.<br>Lancez une analyse pour generer les tickets.</p>
       <button class="btn btn-primary" onclick="openAnalyzeModal()">Lancer l'analyse</button>
     </div>`;
 }
 
 function renderTicketCard(ticket) {
-  const typeClass = ticket.type.includes('Haute') && !ticket.type.includes('Securite') ? 'type-hp'
-    : ticket.type.includes('Securite et') ? 'type-combo' : 'type-sec';
+  const typeClass = ticket.type.includes('Haute') && !ticket.type.includes('Securite') ? 'type-hp' : ticket.type.includes('Securite et') ? 'type-combo' : 'type-sec';
   let totalOdds = 1;
   if (ticket.picks && ticket.picks.length) {
     totalOdds = Math.round(ticket.picks.reduce((acc, p) => acc * (parseFloat(p.odds) || 1), 1) * 100) / 100;
@@ -366,13 +320,10 @@ async function loadHistory() {
   try {
     const history = await fetch('/api/history').then(r => r.json());
     const container = document.getElementById('history-container');
-    if (!history.length) {
-      container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>Aucun historique.</p></div>';
-      return;
-    }
+    if (!history.length) { container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>Aucun historique.</p></div>'; return; }
     container.innerHTML = `
       <table class="history-table">
-        <thead><tr><th>Date</th><th>Tickets</th><th>Gagnés</th><th>Perdus</th><th>Taux</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Date</th><th>Tickets</th><th>Gagnes</th><th>Perdus</th><th>Taux</th><th>Actions</th></tr></thead>
         <tbody>${history.map(h => `
           <tr>
             <td class="date-cell">${h.date}</td>
@@ -384,10 +335,7 @@ async function loadHistory() {
           </tr>`).join('')}
         </tbody>
       </table>`;
-  } catch (e) {
-    document.getElementById('history-container').innerHTML = '<div class="empty-state">Erreur.</div>';
-    console.error('Erreur de chargement de l\'historique:', e);
-  }
+  } catch (e) { document.getElementById('history-container').innerHTML = '<div class="empty-state">Erreur.</div>'; }
 }
 
 function viewDate(date) {
@@ -397,21 +345,23 @@ function viewDate(date) {
 }
 
 async function generateReportFor(date) {
-  if (!confirm(`Générer le rapport pour le ${date}?`)) return;
+  if (!confirm(`Generer le rapport pour le ${date}?`)) return;
   await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date }) });
-  alert('Rapport en cours de génération.');
+  alert('Rapport en cours de generation.');
   loadHistory();
 }
 
 async function loadSettings() {
   try {
     const s = await fetch('/api/settings').then(r => r.json());
-    if (s.hasApiFootball) document.getElementById('cfg-football').placeholder = '(clé configurée)';
-    if (s.hasApiOdds) document.getElementById('cfg-odds').placeholder = '(clé configurée)';
-    if (s.hasAnthropic) document.getElementById('cfg-anthropic').placeholder = '(clé configurée)';
-  } catch (e) {
-    console.error('Erreur de chargement des paramètres:', e);
-  }
+    if (s.hasApiFootball) document.getElementById('cfg-football').placeholder = '(cle configuree)';
+    if (s.hasApiOdds) document.getElementById('cfg-odds').placeholder = '(cle configuree)';
+    if (s.hasAnthropic) document.getElementById('cfg-anthropic').placeholder = '(cle configuree)';
+    if (s.hasGemini) {
+      const geminiInput = document.getElementById('cfg-gemini');
+      if (geminiInput) geminiInput.placeholder = '(cle configuree)';
+    }
+  } catch (e) { console.error('Erreur parametres:', e); }
 }
 
 async function saveSettings() {
@@ -420,44 +370,37 @@ async function saveSettings() {
   const football = document.getElementById('cfg-football').value.trim();
   const odds = document.getElementById('cfg-odds').value.trim();
   const anthropic = document.getElementById('cfg-anthropic').value.trim();
+  const geminiInput = document.getElementById('cfg-gemini');
+  const gemini = geminiInput ? geminiInput.value.trim() : '';
   
   if (football) payload.apiFootballKey = football;
   if (odds) payload.apiOddsKey = odds;
   if (anthropic) payload.anthropicKey = anthropic;
+  if (gemini) payload.geminiKey = gemini;
   
-  if (!Object.keys(payload).length) { 
-    fb.className = 'feedback-msg feedback-err'; 
-    fb.textContent = 'Aucune clé.'; 
-    return; 
-  }
+  if (!Object.keys(payload).length) { fb.className = 'feedback-msg feedback-err'; fb.textContent = 'Aucune cle.'; return; }
   
   try {
     const res = await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     if (res.ok) {
       fb.className = 'feedback-msg feedback-ok';
-      fb.textContent = 'Clés sauvegardées.';
+      fb.textContent = 'Cles sauvegardees.';
       document.getElementById('cfg-football').value = '';
       document.getElementById('cfg-odds').value = '';
       document.getElementById('cfg-anthropic').value = '';
+      if (geminiInput) geminiInput.value = '';
       loadSettings();
       refreshDashboard();
       setTimeout(() => { fb.textContent = ''; }, 4000);
-    } else { 
-      fb.className = 'feedback-msg feedback-err'; 
-      fb.textContent = 'Erreur serveur.'; 
-    }
-  } catch (e) { 
-    fb.className = 'feedback-msg feedback-err'; 
-    fb.textContent = 'Erreur réseau.'; 
-    console.error('Erreur lors de la sauvegarde:', e);
-  }
+    } else { fb.className = 'feedback-msg feedback-err'; fb.textContent = 'Erreur serveur.'; }
+  } catch (e) { fb.className = 'feedback-msg feedback-err'; fb.textContent = 'Erreur reseau.'; }
 }
 
 async function launchReport() {
   const date = document.getElementById('report-date').value;
-  if (!date) { alert('Sélectionnez une date.'); return; }
+  if (!date) { alert('Selectionnez une date.'); return; }
   await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date }) });
-  alert('Rapport lancé.');
+  alert('Rapport lance.');
   loadHistory();
 }
 
@@ -469,13 +412,11 @@ function openAnalyzeModal() {
   document.getElementById('analyze-btn').textContent = "Lancer l'analyse";
 }
 
-function closeAnalyzeModal() {
-  document.getElementById('analyze-modal').style.display = 'none';
-}
+function closeAnalyzeModal() { document.getElementById('analyze-modal').style.display = 'none'; }
 
 async function launchAnalysis() {
   const date = document.getElementById('analyze-date').value;
-  if (!date) { alert('Sélectionnez une date.'); return; }
+  if (!date) { alert('Selectionnez une date.'); return; }
   
   const btn = document.getElementById('analyze-btn');
   const progress = document.getElementById('analyze-progress');
@@ -488,22 +429,10 @@ async function launchAnalysis() {
   progress.style.display = 'block';
   result.textContent = '';
   
-  const steps = [
-    [10, 'Connexion...'],
-    [25, 'Matchs du jour...'],
-    [45, 'Cotes en temps réel...'],
-    [65, 'Analyse...'],
-    [85, 'Génération tickets...'],
-    [100, 'Finalisation...']
-  ];
-  
+  const steps = [[10, 'Connexion...'],[25, 'Matchs du jour...'],[45, 'Cotes en temps reel...'],[65, 'Analyse...'],[85, 'Generation tickets...'],[100, 'Finalisation...']];
   let stepIdx = 0;
   const interval = setInterval(() => {
-    if (stepIdx < steps.length) { 
-      fill.style.width = steps[stepIdx][0] + '%'; 
-      msg.textContent = steps[stepIdx][1]; 
-      stepIdx++; 
-    }
+    if (stepIdx < steps.length) { fill.style.width = steps[stepIdx][0] + '%'; msg.textContent = steps[stepIdx][1]; stepIdx++; }
   }, 1800);
   
   try {
@@ -512,9 +441,9 @@ async function launchAnalysis() {
     
     if (res.ok) {
       fill.style.width = '100%';
-      msg.textContent = 'Succès!';
+      msg.textContent = 'Succes!';
       result.className = 'feedback-msg feedback-ok';
-      result.textContent = 'Tickets en cours de génération...';
+      result.textContent = 'Tickets en cours de generation...';
       setTimeout(() => {
         closeAnalyzeModal();
         document.getElementById('tickets-date-picker').value = date;
@@ -522,15 +451,13 @@ async function launchAnalysis() {
         switchTab('tickets');
         setTimeout(() => { loadTicketsForDate(date); refreshDashboard(); }, 15000);
       }, 2000);
-    } else { 
-      throw new Error('Erreur serveur'); 
-    }
+    } else { throw new Error('Erreur serveur'); }
   } catch (e) {
     clearInterval(interval);
     result.className = 'feedback-msg feedback-err';
     result.textContent = 'Erreur: ' + e.message;
     btn.disabled = false;
-    btn.textContent = "Réessayer";
+    btn.textContent = "Reessayer";
   }
 }
 

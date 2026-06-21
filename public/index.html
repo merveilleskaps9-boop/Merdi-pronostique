@@ -64,15 +64,9 @@
 </div>
 
 <div class="sport-tabs-container">
-    <button class="sport-tab active" onclick="changerSport('football')">
-        ⚽ FOOTBALL
-    </button>
-    <button class="sport-tab" onclick="changerSport('nba')">
-        🏀 BASKET-BALL
-    </button>
-    <button class="sport-tab" onclick="changerSport('mlb')">
-        ⚾ BASEBALL
-    </button>
+    <button class="sport-tab active" onclick="changerSport('football')">⚽ FOOTBALL</button>
+    <button class="sport-tab" onclick="changerSport('nba')">🏀 BASKET-BALL</button>
+    <button class="sport-tab" onclick="changerSport('mlb')">⚾ BASEBALL</button>
 </div>
 
 <style>
@@ -141,16 +135,14 @@
 <input type="file" id="file-input" multiple accept=".jpg,.jpeg,.png,.gif,.webp,.pdf" style="display:none" onchange="handleFileSelect(this.files)">
 <div id="file-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>
 </div>
-
 <div class="form-group" style="margin-bottom: 15px;">
-  <label style="display: block; margin-bottom: 5px; color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Sport à analyser</label>
+  <label style="display: block; margin-bottom: 5px; color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Sport a analyser</label>
   <select id="manuel-sport" style="width: 100%; padding: 10px; border-radius: var(--radius); border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-primary); font-family: var(--font-mono);">
     <option value="football">⚽ Football</option>
     <option value="basketball">🏀 Basket-ball (NBA)</option>
     <option value="baseball">⚾ Baseball (MLB)</option>
   </select>
 </div>
-
 <div class="form-group">
 <label>Notes supplementaires (optionnel)</label>
 <textarea id="manuel-notes" style="width:100%;background:var(--bg-surface);border:1px solid var(--border-strong);border-radius:var(--radius);color:var(--text-primary);padding:9px 12px;font-size:13px;font-family:var(--font-mono);min-height:80px;resize:vertical;" placeholder="Blessures importantes, absences, contexte supplementaire..."></textarea>
@@ -186,6 +178,11 @@
 <label>Anthropic Claude API <span class="required-badge">Requis</span></label>
 <input type="password" id="cfg-anthropic" placeholder="sk-ant-..." autocomplete="off">
 <div class="field-help"><a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com/settings/keys</a></div>
+</div>
+<div class="form-group">
+<label>Google Gemini API <span class="required-badge" style="background:#4285f4;">Nouveau</span></label>
+<input type="password" id="cfg-gemini" placeholder="AIzaSy..." autocomplete="off">
+<div class="field-help"><a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com/app/apikey</a></div>
 </div>
 <button class="btn btn-primary" onclick="saveSettings()">Sauvegarder les cles</button>
 <div id="settings-feedback" class="feedback-msg"></div>
