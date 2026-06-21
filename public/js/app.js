@@ -470,3 +470,20 @@ function formatOdds(val) {
   if (!val || val === 0) return '--';
   return parseFloat(val).toFixed(2);
 }
+
+// ---- Fonction pour changer de sport dans l'onglet Tickets ----
+function changerSport(sport) {
+  // 1. On retire la couleur verte (active) de tous les boutons
+  document.querySelectorAll('.sport-tab').forEach(btn => {
+    btn.classList.remove('active');
+  });
+
+  // 2. On trouve le bouton qu'on vient de cliquer et on le met en vert
+  const targetBtn = document.querySelector(`.sport-tab[onclick="changerSport('${sport}')"]`);
+  if (targetBtn) {
+    targetBtn.classList.add('active');
+  }
+
+  // Note : L'application sauvegarde les tickets par date. 
+  // La derniere analyse lancee (peu importe le sport) s'affichera sur la page pour cette date.
+}
