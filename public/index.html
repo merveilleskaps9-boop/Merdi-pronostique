@@ -10,18 +10,15 @@
 <link rel="stylesheet" href="/css/main.css">
 
 <link rel="manifest" href="/manifest.json">
-
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PronosAI">
 <link rel="apple-touch-icon" href="/image.png">
-
 <meta name="theme-color" content="#0a0a0c">
 </head>
 <body>
 <div class="app-shell">
   <div class="sidebar-overlay" id="sidebar-overlay"></div>
-  
   <button class="menu-btn" id="menu-btn">&#9776;</button>
   
   <nav class="sidebar">
@@ -80,9 +77,9 @@
       </div>
       <div class="ticket-filters">
         <button class="filter-btn active" data-filter="all" onclick="filterTickets('all', this)">Tous</button>
-        <button class="filter-btn" data-filter="Haute Performance" onclick="filterTickets('Haute Performance', this)">HP</button>
-        <button class="filter-btn" data-filter="Securite" onclick="filterTickets('Securite', this)">Securité</button>
-        <button class="filter-btn" data-filter="Securite et Haute Performance" onclick="filterTickets('Securite et Haute Performance', this)">SEC+HP</button>
+        <button class="filter-btn" data-filter="Sur" onclick="filterTickets('Sur', this)">Sûrs</button>
+        <button class="filter-btn" data-filter="Moyen" onclick="filterTickets('Moyen', this)">Moyens</button>
+        <button class="filter-btn" data-filter="Risque" onclick="filterTickets('Risque', this)">Risques</button>
       </div>
       <div id="tickets-container">
         <div class="empty-state"><div class="empty-icon">&#9917;</div><p>Aucun ticket disponible.</p><button class="btn btn-primary" onclick="switchTab('manuel')">Lancer l'analyse</button></div>
@@ -100,12 +97,12 @@
           <label>Sport à analyser</label>
           <select id="manuel-sport" class="select-premium">
             <option value="football">⚽ Football</option>
-            <option value="basketball">🏀 Basket-ball (NBA)</option>
+            <option value="basketball">🏀 Basket-ball (NBA / WNBA)</option>
             <option value="baseball">⚾ Baseball (MLB)</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Captures d'écran ou PDFs (Bet365, Aiscore...)</label>
+          <label>Captures d'écran ou PDFs</label>
           <div id="drop-zone" onclick="document.getElementById('file-input').click()" class="drop-zone-premium">
             <div style="font-size:32px;margin-bottom:10px;">🖼️</div>
             <div>Cliquer pour uploader (Max 20)</div>
@@ -115,7 +112,7 @@
         </div>
         <div class="form-group">
           <label>Notes supplémentaires (optionnel)</label>
-          <textarea id="manuel-notes" class="textarea-premium" placeholder="Absences, contexte, blessures..."></textarea>
+          <textarea id="manuel-notes" class="textarea-premium" placeholder="Absences, contexte..."></textarea>
         </div>
         <div id="manuel-progress" style="display:none;margin-bottom:12px;">
           <div class="progress-label" id="manuel-progress-msg">Analyse en cours...</div>
@@ -135,11 +132,11 @@
         <div class="panel">
           <div class="panel-title">Clés API</div>
           <div class="form-group">
-            <label>Anthropic Claude API <span class="required-badge">Requis</span></label>
+            <label>Anthropic Claude API</label>
             <input type="password" id="cfg-anthropic" placeholder="sk-ant-...">
           </div>
           <div class="form-group">
-            <label>Google Gemini API <span class="required-badge" style="background:#4285f4;">Nouveau</span></label>
+            <label>Google Gemini API</label>
             <input type="password" id="cfg-gemini" placeholder="AIzaSy...">
           </div>
           <div class="form-group">
@@ -164,7 +161,6 @@
 </div>
 <script src="/js/app.js"></script>
 <script>
-  // Activation Service Worker pour PWA
   if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }
 </script>
 </body>

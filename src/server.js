@@ -20,36 +20,40 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// Fonction pour construire les instructions selon le sport
 function buildPrompt(sport, date, pdfTexts, notes) {
   let prompt = `Tu es un expert en analyse de paris sportifs. Date d'analyse : ${date}.\n`;
-  prompt += `Analyse toutes les images et donnees fournies. Utilise uniquement les cotes visibles, ne les invente pas.\n\n`;
+  prompt += `Analyse minutieusement toutes les images fournies. N'invente aucune cote, utilise uniquement celles visibles sur les captures.\n\n`;
 
+  prompt += `REGLES FONDAMENTALES DE CONSTRUCTION DES TICKETS :\n`;
+  prompt += `Tu DOIS analyser le nombre de matchs presents sur les images et appliquer l'une de ces deux strategies :\n`;
+  prompt += `CAS A (S'il n'y a que 1 ou 2 matchs sur les images) : Cree des tickets de type "Bet Builder" (combiner plusieurs evenements differents d'un meme match). La cote totale de CHAQUE ticket doit se situer obligatoirement entre 10.0 et 20.0.\n`;
+  prompt += `CAS B (S'il y a 3 matchs ou plus) : Combine differents matchs ensemble (maximum 5 matchs par ticket). Les cotes cibles a atteindre sont : Minimum 10.0 pour les tickets Surs, Minimum 20.0 pour les Moyens, et Minimum 50.0 pour les Risques.\n\n`;
+
+  prompt += `MARCHES A UTILISER PAR SPORT (Combine ces options pour gonfler la cote totale) :\n`;
   if (sport === 'basketball') {
-    prompt += `MARCHES AUTORISES UNIQUEMENT (NBA/Basket) :\n`;
-    prompt += `- Over/Under (Plus/Moins) total de points pour le match\n`;
-    prompt += `- Over/Under points par equipe\n`;
-    prompt += `GENERE EXACTEMENT 5 TICKETS bases sur ces marches.\n`;
+    prompt += `- Points du joueur (Plus de / Moins de)\n`;
+    prompt += `- Passes decisives du joueur\n`;
+    prompt += `- Rebonds du joueur\n`;
+    prompt += `- Total Points + Rebonds + Passes (PRA)\n`;
   } else if (sport === 'baseball') {
-    prompt += `MARCHES AUTORISES UNIQUEMENT (MLB/Baseball) :\n`;
+    prompt += `- Joueur : Coups surs (Hits), Points (Runs), RBIs, Total bases\n`;
     prompt += `- Lanceur : Strikeouts (Retraits au baton)\n`;
-    prompt += `- Joueur : Coups surs (Hits)\n`;
-    prompt += `- Joueur : Points (Runs)\n`;
-    prompt += `- Joueur : RBIs (Points produits)\n`;
-    prompt += `- Joueur : Total Coups surs + Points + RBIs\n`;
-    prompt += `GENERE EXACTEMENT 5 TICKETS bases sur les performances des joueurs et lanceurs.\n`;
   } else {
-    prompt += `MARCHES AUTORISES UNIQUEMENT (Football) :\n`;
     prompt += `- BTTS Oui (les deux equipes marquent)\n`;
-    prompt += `- Plus de 2.5 buts\n`;
-    prompt += `- Plus de 1.5 buts equipe domicile\n`;
-    prompt += `GENERE EXACTEMENT 5 TICKETS (Ticket 1 et 2 : BTTS, Ticket 3 : +2.5 buts, Ticket 4 : +1.5 buts domicile, Ticket 5 : Mix).\n`;
+    prompt += `- Plus de 1.5 ou 2.5 buts dans le match\n`;
+    prompt += `- Plus de 1.5 buts pour l'equipe a domicile\n`;
+    prompt += `- Plus de 0.5 buts pour l'equipe favorite jouant a l'exterieur\n`;
   }
 
-  if (pdfTexts) prompt += `\nCONTENU DES PDFs :\n${pdfTexts}`;
-  if (notes) prompt += `\nNOTES SUPPLEMENTAIRES :\n${notes}`;
+  if (pdfTexts) prompt += `\nCONTENU DES PDFs POUR CONTEXTE :\n${pdfTexts}`;
+  if (notes) prompt += `\nNOTES DU PARIEUR :\n${notes}`;
 
-  prompt += `\n\nReponds UNIQUEMENT avec un JSON valide, sans markdown. Format strict :
+  prompt += `\n\nSTRUCTURE EXIGEE :\nTu DOIS generer EXACTEMENT 6 TICKETS au total, en respectant ces categories :\n`;
+  prompt += `- Ticket 1 et 2 : Type "Sur"\n`;
+  prompt += `- Ticket 3 et 4 : Type "Moyen"\n`;
+  prompt += `- Ticket 5 et 6 : Type "Risque"\n\n`;
+
+  prompt += `Reponds UNIQUEMENT avec un JSON valide. Aucun texte avant ou apres. Format strict a respecter :
 {
   "date": "${date}",
   "generatedAt": "${new Date().toISOString()}",
@@ -57,15 +61,15 @@ function buildPrompt(sport, date, pdfTexts, notes) {
   "tickets": [
     {
       "id": 1,
-      "type": "Nom du marche",
-      "raisonnement": "Explication globale du ticket",
+      "type": "Sur",
+      "raisonnement": "Explication rapide de la strategie du ticket",
       "picks": [
         {
           "match": "Equipe A vs Equipe B",
           "league": "Nom championnat",
-          "market": "Nom du marche",
-          "odds": 1.50,
-          "justification": "Raison specifique"
+          "market": "Nom de la selection",
+          "odds": 1.90,
+          "justification": "Raison"
         }
       ]
     }
@@ -83,7 +87,7 @@ async function runEveningAnalysis(date) {
 
   if (!apiAnthropic) throw new Error('Cle Anthropic manquante');
 
-  storage.addActivityLog(`Debut analyse pour ${date}`, 'info');
+  storage.addActivityLog(`Debut analyse automatique pour ${date}`, 'info');
 
   let fixtures = [];
   let oddsData = [];
@@ -94,7 +98,6 @@ async function runEveningAnalysis(date) {
     try {
       storage.addActivityLog('Recuperation des fixtures via API-Football...', 'info');
       const raw = await getFixturesForTargetLeagues(apiFootball, date);
-      storage.addActivityLog(`${raw.length} matchs trouves`, 'info');
       fixtures = raw.slice(0, 30);
       usage.footballDailyUsed = Math.min(usage.footballDailyUsed + 1, 100);
     } catch (e) {
@@ -109,21 +112,15 @@ async function runEveningAnalysis(date) {
       oddsData = odds.map(extractBestOdds);
       if (used !== null) usage.oddsMonthlyUsed = used;
       if (oddsData.length > 0) oddsAvailable = true;
-      storage.addActivityLog(`${oddsData.length} evenements avec cotes recuperes`, 'info');
     } catch (e) {
       storage.addActivityLog(`Cotes non disponibles: ${e.message}`, 'warn');
     }
   }
 
-  if (!oddsAvailable) {
-    storage.addActivityLog('Analyse sans cotes - Claude analysera forme et enjeux uniquement', 'info');
-  }
-
   storage.saveApiUsage(usage);
-  storage.addActivityLog('Generation des 5 tickets via Claude AI...', 'info');
   const ticketsData = await generateTickets(apiAnthropic, fixtures, oddsData, date, oddsAvailable);
   storage.saveTickets(date, ticketsData);
-  storage.addActivityLog(`5 tickets generes et sauvegardes pour ${date}`, 'success');
+  storage.addActivityLog(`Tickets generes et sauvegardes pour ${date}`, 'success');
   return ticketsData;
 }
 
@@ -133,14 +130,12 @@ async function runMorningReport(date) {
   if (!apiAnthropic) throw new Error('Cle Anthropic manquante');
   const tickets = storage.loadTickets(date);
   if (!tickets) throw new Error(`Aucun ticket trouve pour ${date}`);
-  storage.addActivityLog(`Debut rapport du matin pour ${date}`, 'info');
   const report = await generateMorningReport(apiAnthropic, tickets.tickets || [], []);
   storage.saveReport(date, report);
   storage.addActivityLog(`Rapport du matin genere pour ${date}`, 'success');
   return report;
 }
 
-// ---- Route analyse manuelle MULTI-IA (Claude + Gemini) ----
 app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
   const files = req.files || [];
   const { date, notes, sport = 'football' } = req.body;
@@ -159,7 +154,7 @@ app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
     return res.status(400).json({ error: 'Aucune cle IA configuree (Claude ou Gemini)' });
   }
 
-  res.json({ message: 'Analyse manuelle multi-IA lancee', date });
+  res.json({ message: 'Analyse manuelle lancee', date });
 
   (async () => {
     try {
@@ -189,17 +184,8 @@ app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
 
           const validMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
           if (validMimeTypes.includes(mimeType)) {
-             // Format pour Claude
-             messageContentClaude.push({
-              type: 'image',
-              source: { type: 'base64', media_type: mimeType, data: base64 }
-            });
-             // Format pour Gemini
-             messageContentGemini.push({
-               inlineData: { data: base64, mimeType: mimeType }
-             });
-          } else {
-             storage.addActivityLog(`Fichier ignore : format non supporte (${mimeType})`, 'warn');
+             messageContentClaude.push({ type: 'image', source: { type: 'base64', media_type: mimeType, data: base64 } });
+             messageContentGemini.push({ inlineData: { data: base64, mimeType: mimeType } });
           }
         }
       }
@@ -207,15 +193,10 @@ app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
       const textPrompt = buildPrompt(sport, date, pdfTexts, notes);
       
       messageContentClaude.push({ type: 'text', text: textPrompt });
-      messageContentGemini.unshift({ text: textPrompt }); // Texte en premier pour Gemini
-
-      if (messageContentClaude.length === 1 && messageContentGemini.length === 1) {
-          throw new Error("Aucune image valide trouvee.");
-      }
+      messageContentGemini.unshift({ text: textPrompt });
 
       let combinedTickets = [];
 
-      // --- 1. APPEL CLAUDE ---
       if (apiAnthropic) {
         try {
           storage.addActivityLog(`Interrogation de Claude AI en cours...`, 'info');
@@ -231,23 +212,17 @@ app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
           
           const parsed = JSON.parse(jsonText);
           if (parsed.tickets) {
-            parsed.tickets.forEach(t => {
-              t.type = t.type + ' (Claude)';
-              combinedTickets.push(t);
-            });
+            parsed.tickets.forEach(t => { t.type = t.type + ' (Claude)'; combinedTickets.push(t); });
           }
-          storage.addActivityLog(`Claude a termine son analyse`, 'success');
         } catch (err) {
           storage.addActivityLog(`Erreur Claude: ${err.message}`, 'error');
         }
       }
 
-      // --- 2. APPEL GEMINI ---
       if (apiGemini) {
         try {
           storage.addActivityLog(`Interrogation de Gemini AI en cours...`, 'info');
           const genAI = new GoogleGenerativeAI(apiGemini);
-          // Utilisation du modele Flash, tres rapide et parfait pour la vision
           const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
           
           const result = await model.generateContent(messageContentGemini);
@@ -256,19 +231,13 @@ app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
           
           const parsed = JSON.parse(jsonText);
           if (parsed.tickets) {
-            parsed.tickets.forEach((t, index) => {
-              t.id = t.id + 100 + index; // Decaler les IDs pour eviter les doublons
-              t.type = t.type + ' (Gemini)';
-              combinedTickets.push(t);
-            });
+            parsed.tickets.forEach((t, index) => { t.id = t.id + 100 + index; t.type = t.type + ' (Gemini)'; combinedTickets.push(t); });
           }
-          storage.addActivityLog(`Gemini a termine son analyse`, 'success');
         } catch (err) {
           storage.addActivityLog(`Erreur Gemini: ${err.message}`, 'error');
         }
       }
 
-      // Finalisation et calcul des cotes totales
       combinedTickets = combinedTickets.map(ticket => {
         const totalOdds = Math.round(
           (ticket.picks || []).reduce((acc, p) => acc * (parseFloat(p.odds) || 1), 1) * 100
@@ -276,24 +245,17 @@ app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
         return { ...ticket, totalOdds };
       });
 
-      storage.saveTickets(date, {
-        date: date,
-        generatedAt: new Date().toISOString(),
-        source: 'manuel',
-        tickets: combinedTickets
-      });
-      
-      storage.addActivityLog(`Analyse terminee : ${combinedTickets.length} tickets generes au total`, 'success');
+      storage.saveTickets(date, { date: date, generatedAt: new Date().toISOString(), source: 'manuel', tickets: combinedTickets });
+      storage.addActivityLog(`Analyse terminee : ${combinedTickets.length} tickets generes`, 'success');
 
     } catch (e) {
-      storage.addActivityLog(`Erreur globale analyse manuelle: ${e.message}`, 'error');
+      storage.addActivityLog(`Erreur globale analyse: ${e.message}`, 'error');
     } finally {
       cleanupFiles(files);
     }
   })();
 });
 
-// ---- Routes API standard ----
 app.get('/api/status', (req, res) => {
   const usage = storage.loadApiUsage();
   const settings = storage.loadSettings();
@@ -354,18 +316,14 @@ app.post('/api/analyze', async (req, res) => {
   if (!date) return res.status(400).json({ error: 'Date requise' });
   storage.addActivityLog(`Analyse automatique lancee pour ${date}`, 'info');
   res.json({ message: 'Analyse lancee en arriere-plan', date });
-  runEveningAnalysis(date).catch(err => {
-    storage.addActivityLog(`Erreur analyse: ${err.message}`, 'error');
-  });
+  runEveningAnalysis(date).catch(err => { storage.addActivityLog(`Erreur analyse: ${err.message}`, 'error'); });
 });
 
 app.post('/api/report', async (req, res) => {
   const { date } = req.body;
   if (!date) return res.status(400).json({ error: 'Date requise' });
   res.json({ message: 'Rapport lance en arriere-plan', date });
-  runMorningReport(date).catch(err => {
-    storage.addActivityLog(`Erreur rapport: ${err.message}`, 'error');
-  });
+  runMorningReport(date).catch(err => { storage.addActivityLog(`Erreur rapport: ${err.message}`, 'error'); });
 });
 
 app.post('/api/settings', (req, res) => {
@@ -400,11 +358,7 @@ app.get('*', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`\n=================================================`);
-  console.log(` Football Pronostics - Serveur actif`);
-  console.log(` http://localhost:${PORT}`);
-  console.log(`=================================================\n`);
-  storage.addActivityLog(`Serveur demarre sur le port ${PORT}`, 'success');
+  console.log(`Serveur demarre sur le port ${PORT}`);
   scheduler.initScheduler(runEveningAnalysis, runMorningReport);
 });
 

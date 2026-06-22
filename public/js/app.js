@@ -115,7 +115,7 @@ function renderFilePreview() {
     </div>`;
   }).join('');
   const count = document.getElementById('drop-zone');
-  if (count) count.querySelector('div:nth-child(2)').textContent = `${selectedFiles.length} fichier(s) selectionne(s) - Cliquer pour en ajouter`;
+  if (count) count.querySelector('div:nth-child(2)').textContent = `${selectedFiles.length} fichier(s) selectionnes`;
 }
 
 function removeFile(index) {
@@ -126,7 +126,7 @@ function removeFile(index) {
 async function launchManualAnalysis() {
   const date = document.getElementById('manuel-date').value;
   if (!date) { alert('Selectionnez une date.'); return; }
-  if (!selectedFiles.length) { alert('Ajoutez au moins un fichier (screenshot ou PDF).'); return; }
+  if (!selectedFiles.length) { alert('Ajoutez au moins un fichier.'); return; }
 
   const btn = document.getElementById('manuel-btn');
   const progress = document.getElementById('manuel-progress');
@@ -139,23 +139,18 @@ async function launchManualAnalysis() {
   progress.style.display = 'block';
   result.textContent = '';
 
-  const steps = [[15, 'Preparation des fichiers...'],[35, 'Envoi aux IAs...'],[60, 'Lecture des images et PDFs...'],[80, 'Generation des tickets...'],[100, 'Finalisation...']];
+  const steps = [[15, 'Preparation...'],[35, 'Envoi aux IAs...'],[60, 'Lecture des cotes...'],[80, 'Generation des tickets...'],[100, 'Finalisation...']];
   let stepIdx = 0;
   const interval = setInterval(() => {
     if (stepIdx < steps.length) { fill.style.width = steps[stepIdx][0] + '%'; msg.textContent = steps[stepIdx][1]; stepIdx++; }
-  }, 2000);
+  }, 3000);
 
   try {
     const formData = new FormData();
     formData.append('date', date);
-    
-    const sportSelect = document.getElementById('manuel-sport');
-    const sport = sportSelect ? sportSelect.value : 'football';
-    formData.append('sport', sport);
-
+    formData.append('sport', document.getElementById('manuel-sport').value);
     const notes = document.getElementById('manuel-notes').value;
     if (notes) formData.append('notes', notes);
-    
     selectedFiles.forEach(f => formData.append('files', f));
 
     const res = await fetch('/api/analyze-manual', { method: 'POST', body: formData });
@@ -163,58 +158,36 @@ async function launchManualAnalysis() {
 
     if (res.ok) {
       fill.style.width = '100%';
-      msg.textContent = 'Analyse lancee avec succes!';
+      msg.textContent = 'Termine!';
       result.className = 'feedback-msg feedback-ok';
-      result.textContent = `Les tickets de ${sport} sont en cours de generation. Verifiez dans 30 secondes dans "Tickets du jour".`;
+      result.textContent = `Tickets generes avec succes. Verifiez l'onglet Tickets du jour.`;
       setTimeout(() => {
         document.getElementById('tickets-date-picker').value = date;
         loadTicketsForDate(date);
         switchTab('tickets');
-        setTimeout(() => loadTicketsForDate(date), 30000);
+        setTimeout(() => loadTicketsForDate(date), 20000);
       }, 3000);
       selectedFiles = [];
       renderFilePreview();
-      document.getElementById('manuel-notes').value = '';
     } else { throw new Error('Erreur serveur'); }
   } catch (e) {
     clearInterval(interval);
     result.className = 'feedback-msg feedback-err';
     result.textContent = 'Erreur: ' + e.message;
     btn.disabled = false;
-    btn.textContent = 'Analyser et generer les tickets ↗';
+    btn.textContent = 'Analyser et generer';
   }
 }
 
 async function refreshDashboard() {
   try {
     const status = await fetch('/api/status').then(r => r.json());
-    updateStatsFromStatus(status);
-    checkConfigAlert(status);
-  } catch (e) { console.error('Erreur lors du rafraichissement:', e); }
+    const usage = status.apiUsage || {};
+    document.getElementById('api-football-remaining').textContent = (usage.footballDailyLimit || 100) - (usage.footballDailyUsed || 0);
+    const alert = document.getElementById('config-alert');
+    if (!status.configured.anthropic && !status.configured.gemini) { alert.style.display = 'flex'; } else { alert.style.display = 'none'; }
+  } catch (e) {}
   await loadLogs();
-  await loadLatestReport();
-}
-
-function updateStatsFromStatus(status) {
-  const usage = status.apiUsage || {};
-  const footballRemaining = (usage.footballDailyLimit || 100) - (usage.footballDailyUsed || 0);
-  const oddsRemaining = (usage.oddsMonthlyLimit || 500) - (usage.oddsMonthlyUsed || 0);
-  document.getElementById('api-football-remaining').textContent = footballRemaining;
-  document.getElementById('api-odds-remaining').textContent = oddsRemaining;
-  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' }));
-  const h = now.getHours(), m = now.getMinutes();
-  let minutesTo20h = (20 * 60) - (h * 60 + m);
-  if (minutesTo20h <= 0) minutesTo20h += 24 * 60;
-  document.getElementById('next-analysis-in').textContent = `dans ${Math.floor(minutesTo20h/60)}h ${minutesTo20h%60}min`;
-  document.getElementById('usage-football').textContent = `${usage.footballDailyUsed||0} / ${usage.footballDailyLimit||100}`;
-  document.getElementById('usage-odds').textContent = `${usage.oddsMonthlyUsed||0} / ${usage.oddsMonthlyLimit||500}`;
-  document.getElementById('bar-football').style.width = Math.min(((usage.footballDailyUsed||0)/100)*100, 100) + '%';
-  document.getElementById('bar-odds').style.width = Math.min(((usage.oddsMonthlyUsed||0)/500)*100, 100) + '%';
-}
-
-function checkConfigAlert(status) {
-  const alert = document.getElementById('config-alert');
-  if (!status.configured || !status.configured.anthropic) { alert.style.display = 'flex'; } else { alert.style.display = 'none'; }
 }
 
 async function loadLogs() {
@@ -223,30 +196,9 @@ async function loadLogs() {
     const container = document.getElementById('activity-log');
     if (!logs.length) { container.innerHTML = '<div class="log-empty">Aucune activite recente.</div>'; return; }
     container.innerHTML = logs.map(l => {
-      const typeClass = { success: 'dot-success', error: 'dot-error', warn: 'dot-warn', info: 'dot-info' }[l.type] || 'dot-info';
       const time = new Date(l.timestamp).toLocaleTimeString('fr-CA', { timeZone: 'America/Toronto', hour: '2-digit', minute: '2-digit' });
-      return `<div class="log-item"><span class="log-dot ${typeClass}"></span><span class="log-msg">${escHtml(l.message)}</span><span class="log-time">${time}</span></div>`;
+      return `<div class="log-item"><span class="log-msg">${escHtml(l.message)}</span><span class="log-time">${time}</span></div>`;
     }).join('');
-  } catch (e) { document.getElementById('activity-log').innerHTML = '<div class="log-empty">Erreur chargement journal.</div>'; }
-}
-
-async function loadLatestReport() {
-  try {
-    const history = await fetch('/api/history').then(r => r.json());
-    const withReport = history.find(h => h.report);
-    if (!withReport) {
-      document.getElementById('latest-report').innerHTML = '<div class="empty-state" style="padding:1.5rem 0;">Aucun rapport disponible.</div>';
-      document.getElementById('win-rate').textContent = '--';
-      return;
-    }
-    const r = withReport.report;
-    document.getElementById('win-rate').textContent = r.winRate || '--';
-    document.getElementById('latest-report').innerHTML = `
-      <div class="report-summary">
-        <div class="report-stat"><div class="report-stat-val report-win">${r.won}</div><div class="report-stat-lbl">Gagnes</div></div>
-        <div class="report-stat"><div class="report-stat-val report-loss">${r.lost}</div><div class="report-stat-lbl">Perdus</div></div>
-        <div class="report-stat"><div class="report-stat-val">${r.winRate}</div><div class="report-stat-lbl">Taux</div></div>
-      </div>`;
   } catch (e) {}
 }
 
@@ -266,7 +218,7 @@ function filterTickets(filter, btn) {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
   }
-  const filtered = filter === 'all' ? allTickets : allTickets.filter(t => t.type === filter || t.type.includes(filter));
+  const filtered = filter === 'all' ? allTickets : allTickets.filter(t => t.type.toLowerCase().includes(filter.toLowerCase()));
   renderTickets(filtered);
 }
 
@@ -279,13 +231,17 @@ function renderTicketsEmpty() {
   document.getElementById('tickets-container').innerHTML = `
     <div class="empty-state">
       <div class="empty-icon">&#9917;</div>
-      <p>Aucun ticket disponible.<br>Lancez une analyse pour generer les tickets.</p>
-      <button class="btn btn-primary" onclick="openAnalyzeModal()">Lancer l'analyse</button>
+      <p>Aucun ticket disponible.</p>
+      <button class="btn btn-primary" onclick="switchTab('manuel')">Lancer l'analyse</button>
     </div>`;
 }
 
 function renderTicketCard(ticket) {
-  const typeClass = ticket.type.includes('Haute') && !ticket.type.includes('Securite') ? 'type-hp' : ticket.type.includes('Securite et') ? 'type-combo' : 'type-sec';
+  const typeStr = ticket.type.toLowerCase();
+  let typeClass = 'type-sec'; // Bleu par defaut
+  if (typeStr.includes('moyen')) typeClass = 'type-hp'; // Vert
+  if (typeStr.includes('risque')) typeClass = 'type-combo'; // Violet
+  
   let totalOdds = 1;
   if (ticket.picks && ticket.picks.length) {
     totalOdds = Math.round(ticket.picks.reduce((acc, p) => acc * (parseFloat(p.odds) || 1), 1) * 100) / 100;
@@ -303,7 +259,7 @@ function renderTicketCard(ticket) {
     <div class="ticket-card">
       <div class="ticket-head">
         <div>
-          <div class="ticket-number">Ticket #${ticket.id}${ticket.source === 'manuel' ? ' 📁' : ''}</div>
+          <div class="ticket-number">Ticket #${ticket.id}</div>
           <div class="ticket-type-label ${typeClass}">${escHtml(ticket.type)}</div>
         </div>
         <div>
@@ -312,7 +268,6 @@ function renderTicketCard(ticket) {
         </div>
       </div>
       <div class="ticket-picks">${picks}</div>
-      ${ticket.raisonnement ? `<div class="ticket-reasoning">${escHtml(ticket.raisonnement)}</div>` : ''}
     </div>`;
 }
 
@@ -320,22 +275,19 @@ async function loadHistory() {
   try {
     const history = await fetch('/api/history').then(r => r.json());
     const container = document.getElementById('history-container');
-    if (!history.length) { container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>Aucun historique.</p></div>'; return; }
+    if (!history.length) return;
     container.innerHTML = `
-      <table class="history-table">
-        <thead><tr><th>Date</th><th>Tickets</th><th>Gagnes</th><th>Perdus</th><th>Taux</th><th>Actions</th></tr></thead>
+      <table class="history-table" style="width:100%; text-align:left;">
+        <thead><tr><th>Date</th><th>Tickets</th><th>Actions</th></tr></thead>
         <tbody>${history.map(h => `
           <tr>
-            <td class="date-cell">${h.date}</td>
+            <td style="padding:10px 0;">${h.date}</td>
             <td>${h.ticketsCount}</td>
-            <td class="win-cell">${h.report ? h.report.won : '--'}</td>
-            <td class="loss-cell">${h.report ? h.report.lost : '--'}</td>
-            <td class="rate-cell">${h.report ? h.report.winRate : '--'}</td>
-            <td><span class="history-action" onclick="viewDate('${h.date}')">Voir</span>${!h.report ? ` | <span class="history-action" onclick="generateReportFor('${h.date}')">Rapport</span>` : ''}</td>
+            <td><span style="color:var(--accent);cursor:pointer;" onclick="viewDate('${h.date}')">Voir</span></td>
           </tr>`).join('')}
         </tbody>
       </table>`;
-  } catch (e) { document.getElementById('history-container').innerHTML = '<div class="empty-state">Erreur.</div>'; }
+  } catch (e) {}
 }
 
 function viewDate(date) {
@@ -344,121 +296,34 @@ function viewDate(date) {
   switchTab('tickets');
 }
 
-async function generateReportFor(date) {
-  if (!confirm(`Generer le rapport pour le ${date}?`)) return;
-  await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date }) });
-  alert('Rapport en cours de generation.');
-  loadHistory();
-}
-
 async function loadSettings() {
   try {
     const s = await fetch('/api/settings').then(r => r.json());
-    if (s.hasApiFootball) document.getElementById('cfg-football').placeholder = '(cle configuree)';
-    if (s.hasApiOdds) document.getElementById('cfg-odds').placeholder = '(cle configuree)';
     if (s.hasAnthropic) document.getElementById('cfg-anthropic').placeholder = '(cle configuree)';
-    if (s.hasGemini) {
-      const geminiInput = document.getElementById('cfg-gemini');
-      if (geminiInput) geminiInput.placeholder = '(cle configuree)';
-    }
-  } catch (e) { console.error('Erreur parametres:', e); }
+    if (s.hasGemini) document.getElementById('cfg-gemini').placeholder = '(cle configuree)';
+  } catch (e) {}
 }
 
 async function saveSettings() {
-  const fb = document.getElementById('settings-feedback');
   const payload = {};
-  const football = document.getElementById('cfg-football').value.trim();
-  const odds = document.getElementById('cfg-odds').value.trim();
   const anthropic = document.getElementById('cfg-anthropic').value.trim();
-  const geminiInput = document.getElementById('cfg-gemini');
-  const gemini = geminiInput ? geminiInput.value.trim() : '';
-  
-  if (football) payload.apiFootballKey = football;
-  if (odds) payload.apiOddsKey = odds;
+  const gemini = document.getElementById('cfg-gemini').value.trim();
   if (anthropic) payload.anthropicKey = anthropic;
   if (gemini) payload.geminiKey = gemini;
   
-  if (!Object.keys(payload).length) { fb.className = 'feedback-msg feedback-err'; fb.textContent = 'Aucune cle.'; return; }
-  
-  try {
-    const res = await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    if (res.ok) {
-      fb.className = 'feedback-msg feedback-ok';
-      fb.textContent = 'Cles sauvegardees.';
-      document.getElementById('cfg-football').value = '';
-      document.getElementById('cfg-odds').value = '';
-      document.getElementById('cfg-anthropic').value = '';
-      if (geminiInput) geminiInput.value = '';
-      loadSettings();
-      refreshDashboard();
-      setTimeout(() => { fb.textContent = ''; }, 4000);
-    } else { fb.className = 'feedback-msg feedback-err'; fb.textContent = 'Erreur serveur.'; }
-  } catch (e) { fb.className = 'feedback-msg feedback-err'; fb.textContent = 'Erreur reseau.'; }
-}
-
-async function launchReport() {
-  const date = document.getElementById('report-date').value;
-  if (!date) { alert('Selectionnez une date.'); return; }
-  await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date }) });
-  alert('Rapport lance.');
-  loadHistory();
-}
-
-function openAnalyzeModal() {
-  document.getElementById('analyze-modal').style.display = 'flex';
-  document.getElementById('analyze-progress').style.display = 'none';
-  document.getElementById('analyze-result').textContent = '';
-  document.getElementById('analyze-btn').disabled = false;
-  document.getElementById('analyze-btn').textContent = "Lancer l'analyse";
-}
-
-function closeAnalyzeModal() { document.getElementById('analyze-modal').style.display = 'none'; }
-
-async function launchAnalysis() {
-  const date = document.getElementById('analyze-date').value;
-  if (!date) { alert('Selectionnez une date.'); return; }
-  
-  const btn = document.getElementById('analyze-btn');
-  const progress = document.getElementById('analyze-progress');
-  const fill = document.getElementById('progress-fill');
-  const msg = document.getElementById('progress-msg');
-  const result = document.getElementById('analyze-result');
-  
-  btn.disabled = true;
-  btn.textContent = 'En cours...';
-  progress.style.display = 'block';
-  result.textContent = '';
-  
-  const steps = [[10, 'Connexion...'],[25, 'Matchs du jour...'],[45, 'Cotes en temps reel...'],[65, 'Analyse...'],[85, 'Generation tickets...'],[100, 'Finalisation...']];
-  let stepIdx = 0;
-  const interval = setInterval(() => {
-    if (stepIdx < steps.length) { fill.style.width = steps[stepIdx][0] + '%'; msg.textContent = steps[stepIdx][1]; stepIdx++; }
-  }, 1800);
-  
-  try {
-    const res = await fetch('/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date }) });
-    clearInterval(interval);
-    
-    if (res.ok) {
-      fill.style.width = '100%';
-      msg.textContent = 'Succes!';
-      result.className = 'feedback-msg feedback-ok';
-      result.textContent = 'Tickets en cours de generation...';
-      setTimeout(() => {
-        closeAnalyzeModal();
-        document.getElementById('tickets-date-picker').value = date;
-        loadTicketsForDate(date);
-        switchTab('tickets');
-        setTimeout(() => { loadTicketsForDate(date); refreshDashboard(); }, 15000);
-      }, 2000);
-    } else { throw new Error('Erreur serveur'); }
-  } catch (e) {
-    clearInterval(interval);
-    result.className = 'feedback-msg feedback-err';
-    result.textContent = 'Erreur: ' + e.message;
-    btn.disabled = false;
-    btn.textContent = "Reessayer";
+  if (Object.keys(payload).length) {
+    await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    alert("Cles sauvegardees !");
+    document.getElementById('cfg-anthropic').value = '';
+    document.getElementById('cfg-gemini').value = '';
+    loadSettings();
   }
+}
+
+function changerSport(sport) {
+  document.querySelectorAll('.sport-tab').forEach(btn => btn.classList.remove('active'));
+  const targetBtn = document.querySelector(`.sport-tab[onclick="changerSport('${sport}')"]`);
+  if (targetBtn) targetBtn.classList.add('active');
 }
 
 function escHtml(str) {
@@ -469,21 +334,4 @@ function escHtml(str) {
 function formatOdds(val) {
   if (!val || val === 0) return '--';
   return parseFloat(val).toFixed(2);
-}
-
-// ---- Fonction pour changer de sport dans l'onglet Tickets ----
-function changerSport(sport) {
-  // 1. On retire la couleur verte (active) de tous les boutons
-  document.querySelectorAll('.sport-tab').forEach(btn => {
-    btn.classList.remove('active');
-  });
-
-  // 2. On trouve le bouton qu'on vient de cliquer et on le met en vert
-  const targetBtn = document.querySelector(`.sport-tab[onclick="changerSport('${sport}')"]`);
-  if (targetBtn) {
-    targetBtn.classList.add('active');
-  }
-
-  // Note : L'application sauvegarde les tickets par date. 
-  // La derniere analyse lancee (peu importe le sport) s'affichera sur la page pour cette date.
 }
