@@ -30,7 +30,7 @@
       <li><a href="#" class="nav-link active" data-tab="dashboard"><span class="nav-icon">&#9673;</span> Tableau de bord</a></li>
       <li><a href="#" class="nav-link" data-tab="tickets"><span class="nav-icon">&#9672;</span> Tickets du jour</a></li>
       <li><a href="#" class="nav-link" data-tab="manuel"><span class="nav-icon">&#9713;</span> Analyse manuelle</a></li>
-      <li><a href="#" class="nav-link" data-tab="historique"><span class="nav-icon">&#9707;</span> Historique</a></li>
+      <li><a href="#" class="nav-link" data-tab="historique"><span class="nav-icon">&#9707;</span> Historique local</a></li>
       <li><a href="#" class="nav-link" data-tab="config"><span class="nav-icon">&#9671;</span> Configuration</a></li>
     </ul>
     <div class="sidebar-clock">
@@ -123,12 +123,38 @@
       </div>
     </section>
     <section id="tab-historique" class="tab-section">
-      <div class="page-header"><h1>Historique</h1></div>
+      <div class="page-header">
+        <h1>Historique local</h1>
+      </div>
+      <div class="ticket-filters" style="margin-bottom:15px;">
+        <button class="filter-btn active" id="tab-hist-proposes" onclick="showHistoryTab('proposes')">Générés</button>
+        <button class="filter-btn" id="tab-hist-mises" onclick="showHistoryTab('mises')">Misés / Joués</button>
+      </div>
       <div id="history-container"><div class="empty-state">Chargement...</div></div>
     </section>
     <section id="tab-config" class="tab-section">
       <div class="page-header"><h1>Configuration</h1></div>
       <div class="config-grid">
+        <div class="panel">
+          <div class="panel-title">Préférences de Paris</div>
+          <div class="form-group">
+            <label style="display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" id="cfg-auto-analysis">
+              Activer l'analyse automatique nocturne (Désactivé jusqu'en août)
+            </label>
+          </div>
+          <hr style="border:0;border-top:1px solid var(--border);margin:15px 0;">
+          <div class="panel-title" style="font-size:14px; margin-bottom:10px;">Options Football (Cochez pour orienter l'IA)</div>
+          <div class="form-group" style="display:flex; flex-direction:column; gap:10px;" id="foot-options-container">
+            <label><input type="checkbox" value="Les deux équipes marquent (BTTS)"> Les deux équipes marquent (BTTS)</label>
+            <label><input type="checkbox" value="Victoire 1 ou 2 et Plus de 1.5 buts"> Victoire 1 ou 2 et +1.5 buts</label>
+            <label><input type="checkbox" value="Plus de 1.5 ou 2.5 cartons dans le match"> +1.5 ou 2.5 cartons dans le match</label>
+            <label><input type="checkbox" value="Équipe remporte au moins une mi-temps"> Équipe 1 ou 2 remporte une mi-temps</label>
+            <label><input type="checkbox" value="Plus de 1.5 ou 2.5 tirs cadrés par équipe"> +1.5 ou 2.5 tirs cadrés par équipe</label>
+            <label><input type="checkbox" value="Plus de 2.5 corners par équipe"> +2.5 corners par équipe</label>
+          </div>
+          <button class="btn btn-secondary" onclick="saveSettings()" style="margin-top:15px;">Sauvegarder les préférences</button>
+        </div>
         <div class="panel">
           <div class="panel-title">Clés API</div>
           <div class="form-group">
@@ -147,13 +173,8 @@
             <label>The Odds API</label>
             <input type="password" id="cfg-odds" placeholder="Clé The-odds-api.com">
           </div>
-          <button class="btn btn-primary" onclick="saveSettings()">Sauvegarder les clés</button>
+          <button class="btn btn-primary" onclick="saveSettings()">Sauvegarder la configuration</button>
           <div id="settings-feedback" class="feedback-msg"></div>
-        </div>
-        <div class="panel">
-          <div class="panel-title">Infos API</div>
-          <div class="usage-item"><div class="usage-header"><span>API-Football</span><span id="usage-football">-- / 100</span></div><div class="usage-bar"><div class="usage-fill" id="bar-football" style="width:0%"></div></div></div>
-          <div class="usage-item"><div class="usage-header"><span>The Odds API</span><span id="usage-odds">-- / 500</span></div><div class="usage-bar"><div class="usage-fill" id="bar-odds" style="width:0%"></div></div></div>
         </div>
       </div>
     </section>

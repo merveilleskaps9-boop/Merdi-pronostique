@@ -20,16 +20,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-function buildPrompt(sport, date, pdfTexts, notes) {
+function buildPrompt(sport, date, pdfTexts, notes, optionsFoot) {
   let prompt = `Tu es un expert en analyse de paris sportifs. Date d'analyse : ${date}.\n`;
   prompt += `Analyse minutieusement toutes les images fournies. N'invente aucune cote, utilise uniquement celles visibles sur les captures.\n\n`;
 
   prompt += `REGLES FONDAMENTALES DE CONSTRUCTION DES TICKETS :\n`;
   prompt += `Tu DOIS analyser le nombre de matchs presents sur les images et appliquer l'une de ces deux strategies :\n`;
-  prompt += `CAS A (S'il n'y a que 1 ou 2 matchs sur les images) : Cree des tickets de type "Bet Builder" (combiner plusieurs evenements differents d'un meme match). La cote totale de CHAQUE ticket doit se situer obligatoirement entre 10.0 et 20.0.\n`;
-  prompt += `CAS B (S'il y a 3 matchs ou plus) : Combine differents matchs ensemble (maximum 5 matchs par ticket). Les cotes cibles a atteindre sont : Minimum 10.0 pour les tickets Surs, Minimum 20.0 pour les Moyens, et Minimum 50.0 pour les Risques.\n\n`;
+  prompt += `CAS A (S'il n'y a que 1 ou 2 matchs sur les images) : Cree des tickets de type "Bet Builder" (combiner plusieurs evenements differents d'un meme match). La cote totale de CHAQUE ticket doit se situer obligatoirement entre 10.0 et 30.0.\n`;
+  prompt += `CAS B (S'il y a 3 matchs ou plus) : CHAQUE ticket doit combiner au moins 3 matchs differents. Pour chaque match de ce ticket, tu dois faire 2 a 3 selections specifiques.\n\n`;
 
-  prompt += `MARCHES A UTILISER PAR SPORT (Combine ces options pour gonfler la cote totale) :\n`;
+  prompt += `MARCHES A UTILISER PAR SPORT :\n`;
   if (sport === 'basketball') {
     prompt += `- Points du joueur (Plus de / Moins de)\n`;
     prompt += `- Passes decisives du joueur\n`;
@@ -39,19 +39,19 @@ function buildPrompt(sport, date, pdfTexts, notes) {
     prompt += `- Joueur : Coups surs (Hits), Points (Runs), RBIs, Total bases\n`;
     prompt += `- Lanceur : Strikeouts (Retraits au baton)\n`;
   } else {
-    prompt += `- BTTS Oui (les deux equipes marquent)\n`;
-    prompt += `- Plus de 1.5 ou 2.5 buts dans le match\n`;
-    prompt += `- Plus de 1.5 buts pour l'equipe a domicile\n`;
-    prompt += `- Plus de 0.5 buts pour l'equipe favorite jouant a l'exterieur\n`;
+    const prefFoot = optionsFoot || 'BTTS, Plus de 1.5 buts, Victoire 1 ou 2';
+    prompt += `ANALYSE PROFONDE EXIGEE : Analyse la forme recente (5 derniers matchs) et les enjeux grace a tes propres connaissances web.\n`;
+    prompt += `Tes choix doivent se concentrer sur ces preferences du parieur : ${prefFoot}.\n`;
+    prompt += `Outre les choix visibles sur l'image, tu DOIS proposer des recommandations pertinentes (ex: +2.5 corners, tirs cadres, cartons, equipe remporte une mi-temps) justifiees par ton analyse externe pour gonfler la cote.\n`;
   }
 
   if (pdfTexts) prompt += `\nCONTENU DES PDFs POUR CONTEXTE :\n${pdfTexts}`;
   if (notes) prompt += `\nNOTES DU PARIEUR :\n${notes}`;
 
-  prompt += `\n\nSTRUCTURE EXIGEE :\nTu DOIS generer EXACTEMENT 6 TICKETS au total, en respectant ces categories :\n`;
-  prompt += `- Ticket 1 et 2 : Type "Sur"\n`;
-  prompt += `- Ticket 3 et 4 : Type "Moyen"\n`;
-  prompt += `- Ticket 5 et 6 : Type "Risque"\n\n`;
+  prompt += `\n\nSTRUCTURE EXIGEE :\nTu DOIS generer EXACTEMENT 6 TICKETS au total, en respectant ces categories de cotes totales de combine :\n`;
+  prompt += `- Ticket 1 et 2 : Type "Sur" (Cote globale entre 10.0 et 30.0)\n`;
+  prompt += `- Ticket 3 et 4 : Type "Moyen" (Cote globale entre 35.0 et 60.0)\n`;
+  prompt += `- Ticket 5 et 6 : Type "Risque" (Cote globale entre 65.0 et 1000.0+)\n\n`;
 
   prompt += `Reponds UNIQUEMENT avec un JSON valide. Aucun texte avant ou apres. Format strict a respecter :
 {
@@ -62,14 +62,14 @@ function buildPrompt(sport, date, pdfTexts, notes) {
     {
       "id": 1,
       "type": "Sur",
-      "raisonnement": "Explication rapide de la strategie du ticket",
+      "raisonnement": "Explication de la strategie et de la recherche statistique effectuee",
       "picks": [
         {
           "match": "Equipe A vs Equipe B",
           "league": "Nom championnat",
           "market": "Nom de la selection",
           "odds": 1.90,
-          "justification": "Raison"
+          "justification": "Raison basee sur les stats de forme"
         }
       ]
     }
@@ -81,6 +81,11 @@ function buildPrompt(sport, date, pdfTexts, notes) {
 
 async function runEveningAnalysis(date) {
   const settings = storage.loadSettings();
+  if (!settings.autoAnalysis) {
+    storage.addActivityLog(`Analyse automatique desactivee dans les parametres pour ${date}`, 'info');
+    return null;
+  }
+
   const apiFootball = settings.apiFootballKey || process.env.API_FOOTBALL_KEY;
   const apiOdds = settings.apiOddsKey || process.env.ODDS_API_KEY;
   const apiAnthropic = settings.anthropicKey || process.env.ANTHROPIC_API_KEY;
@@ -138,7 +143,7 @@ async function runMorningReport(date) {
 
 app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
   const files = req.files || [];
-  const { date, notes, sport = 'football' } = req.body;
+  const { date, notes, sport = 'football', optionsFoot = '' } = req.body;
 
   if (!date) {
     cleanupFiles(files);
@@ -190,7 +195,7 @@ app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
         }
       }
 
-      const textPrompt = buildPrompt(sport, date, pdfTexts, notes);
+      const textPrompt = buildPrompt(sport, date, pdfTexts, notes, optionsFoot);
       
       messageContentClaude.push({ type: 'text', text: textPrompt });
       messageContentGemini.unshift({ text: textPrompt });
@@ -242,7 +247,7 @@ app.post('/api/analyze-manual', upload.array('files', 20), async (req, res) => {
         const totalOdds = Math.round(
           (ticket.picks || []).reduce((acc, p) => acc * (parseFloat(p.odds) || 1), 1) * 100
         ) / 100;
-        return { ...ticket, totalOdds };
+        return { ...ticket, totalOdds, sourceDate: date };
       });
 
       storage.saveTickets(date, { date: date, generatedAt: new Date().toISOString(), source: 'manuel', tickets: combinedTickets });
@@ -327,7 +332,7 @@ app.post('/api/report', async (req, res) => {
 });
 
 app.post('/api/settings', (req, res) => {
-  const { apiFootballKey, apiOddsKey, anthropicKey, geminiKey } = req.body;
+  const { apiFootballKey, apiOddsKey, anthropicKey, geminiKey, autoAnalysis, footOptions } = req.body;
   const current = storage.loadSettings();
   const updated = {
     ...current,
@@ -335,11 +340,13 @@ app.post('/api/settings', (req, res) => {
     ...(apiOddsKey !== undefined && { apiOddsKey }),
     ...(anthropicKey !== undefined && { anthropicKey }),
     ...(geminiKey !== undefined && { geminiKey }),
+    ...(autoAnalysis !== undefined && { autoAnalysis }),
+    ...(footOptions !== undefined && { footOptions }),
     updatedAt: new Date().toISOString()
   };
   storage.saveSettings(updated);
   storage.addActivityLog('Parametres sauvegardes', 'success');
-  res.json({ success: true });
+  res.json({ success: true, settings: updated });
 });
 
 app.get('/api/settings', (req, res) => {
@@ -348,7 +355,9 @@ app.get('/api/settings', (req, res) => {
     hasApiFootball: !!s.apiFootballKey || !!process.env.API_FOOTBALL_KEY,
     hasApiOdds: !!s.apiOddsKey || !!process.env.ODDS_API_KEY,
     hasAnthropic: !!s.anthropicKey || !!process.env.ANTHROPIC_API_KEY,
-    hasGemini: !!s.geminiKey || !!process.env.GEMINI_API_KEY
+    hasGemini: !!s.geminiKey || !!process.env.GEMINI_API_KEY,
+    autoAnalysis: s.autoAnalysis || false,
+    footOptions: s.footOptions || []
   });
 });
 
