@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initClock();
   initDropZone();
   refreshDashboard();
+  refreshFootballNews();
   
   const today = getLocalYYYYMMDD(Date.now());
   document.getElementById('tickets-date-picker').value = today;
@@ -73,6 +74,7 @@ function switchTab(name) {
   document.getElementById('tab-' + name).classList.add('active');
   document.querySelector(`[data-tab="${name}"]`).classList.add('active');
   if(name === 'historique') showHistoryTab(currentHistTab);
+  if(name === 'home') refreshFootballNews();
 }
 
 function initClock() {
@@ -172,12 +174,11 @@ async function launchManualAnalysis() {
       result.className = 'feedback-msg feedback-ok';
       result.textContent = `Tickets generes avec succes. Verifiez l'onglet Tickets du jour.`;
       
-      // Auto-refresh logic
       setTimeout(() => {
         document.getElementById('tickets-date-picker').value = date;
         loadTicketsForDate(date);
         switchTab('tickets');
-        setTimeout(() => loadTicketsForDate(date), 10000); // Fetch backend again
+        setTimeout(() => loadTicketsForDate(date), 10000);
       }, 3000);
       selectedFiles = [];
       renderFilePreview();
@@ -214,6 +215,37 @@ async function loadLogs() {
   } catch (e) {}
 }
 
+// === INTERFACE DE SUIVI DE FOOTBALL (ACCUEIL) ===
+function refreshFootballNews() {
+  const wdContainer = document.getElementById('wd-news-container');
+  const barcaContainer = document.getElementById('barca-news-container');
+  const leaguesContainer = document.getElementById('leagues-news-container');
+
+  // Données simulées dynamiques adaptées au contexte de la saison 2026
+  wdContainer.innerHTML = `
+    <div style="background:var(--bg-lighter); padding:12px; border-radius:var(--radius); border:1px solid var(--border);">
+      <div style="font-weight:bold; color:var(--text); margin-bottom:6px;">Groupes & Phases</div>
+      <div style="font-size:12px; color:var(--text-secondary);">Les matchs de poules de la Coupe du Monde 2026 s'enchaînent. Suivi des performances des favoris de l'Euro et d'Amérique Latine.</div>
+    </div>
+    <div style="background:var(--bg-lighter); padding:12px; border-radius:var(--radius); border:1px solid var(--border);">
+      <div style="font-weight:bold; color:var(--accent); margin-bottom:6px;">Tendances Analyses</div>
+      <div style="font-size:12px; color:var(--text-secondary);">Moyenne supérieure à 2.5 buts constatée sur les rencontres de fin de journée. Idéal pour l'orientation des algorithmes de filtrage.</div>
+    </div>
+  `;
+
+  barcaContainer.innerHTML = `
+    <div class="log-item"><span class="log-msg"><strong>Mercato:</strong> Discussions avancées sur le renforcement du milieu de terrain offensif. Suivi des profils cibles.</span></div>
+    <div class="log-item"><span class="log-msg"><strong>Actualité:</strong> Planification de la préparation estivale et ajustement de l'effectif selon les contraintes financières.</span></div>
+  `;
+
+  leaguesContainer.innerHTML = `
+    <div class="log-item"><span class="log-msg"><strong>MLS:</strong> Matchs intenses à l'Est, cotes attractives sur le marché BTTS.</span></div>
+    <div class="log-item"><span class="log-msg"><strong>Brésil (Série A):</strong> Rythme soutenu en tête de classement.</span></div>
+    <div class="log-item"><span class="log-msg"><strong>Ligue 1 / La Liga / Premier League / Serie A:</strong> Suivi des calendriers de reprise et des bilans de fin de saison (Segunda, Championship, Serie B).</span></div>
+    <div class="log-item"><span class="log-msg"><strong>Chine / Portugal / Turquie:</strong> Analyse statistique de la forme des équipes à domicile.</span></div>
+  `;
+}
+
 async function loadTicketsForDate(date) {
   document.getElementById('tickets-date-label').textContent = `Date: ${date}`;
   try {
@@ -221,7 +253,6 @@ async function loadTicketsForDate(date) {
     if (!data || !data.tickets || !data.tickets.length) { renderTicketsEmpty(); return; }
     allTickets = data.tickets;
     
-    // Auto-save generated to local history proposed
     allTickets.forEach(t => {
        const exists = localHistory.proposes.find(pt => pt.id === t.id && pt.sourceDate === t.sourceDate);
        const existsMise = localHistory.mises.find(mt => mt.id === t.id && mt.sourceDate === t.sourceDate);
@@ -320,8 +351,6 @@ function renderTicketCard(ticket, showBetButton = false) {
     </div>`;
 }
 
-// === HISTORIQUE LOCAL LOGIC ===
-
 function showHistoryTab(tab) {
     currentHistTab = tab;
     document.getElementById('tab-hist-proposes').classList.remove('active');
@@ -336,9 +365,7 @@ function showHistoryTab(tab) {
         return;
     }
     
-    // Sort by latest generated
     items.sort((a, b) => (b.generatedTimestamp || 0) - (a.generatedTimestamp || 0));
-    
     container.innerHTML = items.map(t => renderTicketCard(t, tab === 'proposes')).join('');
 }
 
@@ -349,11 +376,11 @@ function markAsBetted(ticketId, sourceDate) {
         ticket.status = 'mise';
         localHistory.mises.push(ticket);
         localStorage.setItem('pronos_local_history', JSON.stringify(localHistory));
-        alert('Ticket deplacé vers vos tickets misés !');
+        alert('Ticket déplacé vers vos tickets misés !');
         if(document.getElementById('tab-historique').classList.contains('active')) {
             showHistoryTab(currentHistTab);
         } else {
-            loadTicketsForDate(sourceDate); // refresh view
+            loadTicketsForDate(sourceDate);
         }
     }
 }
@@ -366,8 +393,6 @@ function resolveTicket(ticketId, sourceDate, isWinner) {
         showHistoryTab('mises');
     }
 }
-
-// === SETTINGS LOGIC ===
 
 async function loadSettings() {
   try {

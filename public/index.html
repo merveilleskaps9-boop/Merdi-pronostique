@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PronosAI">
-<link rel="apple-touch-icon" href="/image.png">
+<link class="apple-touch-icon" href="/image.png">
 <meta name="theme-color" content="#0a0a0c">
 </head>
 <body>
@@ -27,10 +27,11 @@
       <span class="logo-text">PronosAI</span>
     </div>
     <ul class="nav-links">
-      <li><a href="#" class="nav-link active" data-tab="dashboard"><span class="nav-icon">&#9673;</span> Tableau de bord</a></li>
+      <li><a href="#" class="nav-link active" data-tab="home"><span class="nav-icon">&#9917;</span> Accueil Football</a></li>
       <li><a href="#" class="nav-link" data-tab="tickets"><span class="nav-icon">&#9672;</span> Tickets du jour</a></li>
       <li><a href="#" class="nav-link" data-tab="manuel"><span class="nav-icon">&#9713;</span> Analyse manuelle</a></li>
       <li><a href="#" class="nav-link" data-tab="historique"><span class="nav-icon">&#9707;</span> Historique local</a></li>
+      <li><a href="#" class="nav-link" data-tab="dashboard"><span class="nav-icon">&#9673;</span> Tableau de bord</a></li>
       <li><a href="#" class="nav-link" data-tab="config"><span class="nav-icon">&#9671;</span> Configuration</a></li>
     </ul>
     <div class="sidebar-clock">
@@ -39,12 +40,48 @@
     </div>
   </nav>
   <main class="main-content">
-    <section id="tab-dashboard" class="tab-section active">
+    <section id="tab-home" class="tab-section active">
+      <div class="page-header">
+        <h1>Accueil Football</h1>
+        <div class="header-actions">
+          <button class="btn btn-primary" onclick="refreshFootballNews()">Actualiser les infos</button>
+        </div>
+      </div>
+      
+      <!-- Section Coupe du Monde 2026 -->
+      <div class="panel" style="margin-bottom:20px; border-left:4px solid var(--accent);">
+        <div class="panel-title" style="display:flex; align-items:center; gap:8px;">
+          <span>🏆</span> Coupe du Monde 2026
+        </div>
+        <div id="wd-news-container" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:15px; margin-top:10px;">
+          <div class="empty-state">Chargement des données de la compétition...</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <!-- Section FC Barcelone & Mercato -->
+        <div class="panel">
+          <div class="panel-title">🔵🔴 FC Barcelone & Actualités</div>
+          <div id="barca-news-container" class="log-list" style="margin-top:10px;">
+            <div class="log-empty">Chargement des rumeurs et infos du club...</div>
+          </div>
+        </div>
+        
+        <!-- Section Championnats & Résultats internationaux -->
+        <div class="panel">
+          <div class="panel-title">⚽ Championnats & Résultats actuels</div>
+          <div id="leagues-news-container" class="log-list" style="margin-top:10px;">
+            <div class="log-empty">Chargement des scores (MLS, Chine, Brésil, Europe)...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-dashboard" class="tab-section">
       <div class="page-header">
         <h1>Tableau de bord</h1>
         <div class="header-actions">
           <button class="btn btn-secondary" onclick="refreshDashboard()">Actualiser</button>
-          <button class="btn btn-primary" onclick="switchTab('manuel')">Lancer une analyse</button>
         </div>
       </div>
       <div class="stats-grid">
@@ -63,6 +100,7 @@
         <div class="panel"><div class="panel-title">Dernière performance</div><div id="latest-report"><div class="empty-state">Aucun rapport disponible.</div></div></div>
       </div>
     </section>
+
     <section id="tab-tickets" class="tab-section">
       <div class="page-header">
         <div><h1>Tickets du jour</h1><div class="page-sub" id="tickets-date-label">Chargement...</div></div>
@@ -85,6 +123,7 @@
         <div class="empty-state"><div class="empty-icon">&#9917;</div><p>Aucun ticket disponible.</p><button class="btn btn-primary" onclick="switchTab('manuel')">Lancer l'analyse</button></div>
       </div>
     </section>
+
     <section id="tab-manuel" class="tab-section">
       <div class="page-header"><h1>Analyse manuelle</h1></div>
       <div class="panel" style="margin-bottom:16px;">
@@ -122,6 +161,7 @@
         <button class="btn btn-primary btn-full" onclick="launchManualAnalysis()" id="manuel-btn">Analyser et générer les tickets</button>
       </div>
     </section>
+
     <section id="tab-historique" class="tab-section">
       <div class="page-header">
         <h1>Historique local</h1>
@@ -132,6 +172,7 @@
       </div>
       <div id="history-container"><div class="empty-state">Chargement...</div></div>
     </section>
+
     <section id="tab-config" class="tab-section">
       <div class="page-header"><h1>Configuration</h1></div>
       <div class="config-grid">
