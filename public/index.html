@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>PronosAI - Expert Paris Sportifs</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
+<link href="[https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;700&display=swap](https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;700&display=swap)" rel="stylesheet">
 <link rel="stylesheet" href="/css/main.css">
 
 <link rel="manifest" href="/manifest.json">
@@ -40,38 +40,48 @@
     </div>
   </nav>
   <main class="main-content">
+    
     <section id="tab-home" class="tab-section active">
       <div class="page-header">
         <h1>Accueil Football</h1>
         <div class="header-actions">
-          <button class="btn btn-primary" onclick="refreshFootballNews()">Actualiser les infos</button>
+          <button class="btn btn-primary" onclick="refreshFootballNews()" id="btn-refresh-news">Actualiser avec l'IA</button>
         </div>
       </div>
       
-      <!-- Section Coupe du Monde 2026 -->
-      <div class="panel" style="margin-bottom:20px; border-left:4px solid var(--accent);">
-        <div class="panel-title" style="display:flex; align-items:center; gap:8px;">
-          <span>🏆</span> Coupe du Monde 2026
-        </div>
-        <div id="wd-news-container" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:15px; margin-top:10px;">
-          <div class="empty-state">Chargement des données de la compétition...</div>
-        </div>
+      <div id="news-loading" style="display:none; text-align:center; padding:20px; color:var(--accent);">
+        Recherche en cours sur le web via Gemini... ⏳
       </div>
 
-      <div class="two-col">
-        <!-- Section FC Barcelone & Mercato -->
-        <div class="panel">
-          <div class="panel-title">🔵🔴 FC Barcelone & Actualités</div>
-          <div id="barca-news-container" class="log-list" style="margin-top:10px;">
-            <div class="log-empty">Chargement des rumeurs et infos du club...</div>
+      <div id="news-content-wrapper">
+        <div class="two-col" style="margin-bottom:20px;">
+          <div class="panel" style="border-top:4px solid var(--accent);">
+            <div class="panel-title">🏆 Coupe du Monde 2026</div>
+            <div id="wd-news-container">
+              <div class="empty-state">Cliquez sur "Actualiser" pour charger les infos.</div>
+            </div>
+          </div>
+          
+          <div class="panel" style="border-top:4px solid #A50044;"> <div class="panel-title">🔵🔴 Barça & Mercato (Fabrizio Romano)</div>
+            <div id="barca-news-container">
+              <div class="empty-state">Cliquez sur "Actualiser" pour charger les infos.</div>
+            </div>
           </div>
         </div>
-        
-        <!-- Section Championnats & Résultats internationaux -->
-        <div class="panel">
-          <div class="panel-title">⚽ Championnats & Résultats actuels</div>
-          <div id="leagues-news-container" class="log-list" style="margin-top:10px;">
-            <div class="log-empty">Chargement des scores (MLS, Chine, Brésil, Europe)...</div>
+
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-title">🔮 Prochains Matchs & Recommandations</div>
+            <div id="upcoming-picks-container" style="display:flex; flex-direction:column; gap:15px; margin-top:10px;">
+              <div class="empty-state">Cliquez sur "Actualiser" pour charger les pronostics.</div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">⚽ Résultats Internationaux</div>
+            <div id="leagues-news-container" class="log-list" style="margin-top:10px;">
+              <div class="empty-state">Cliquez sur "Actualiser" pour charger les résultats.</div>
+            </div>
           </div>
         </div>
       </div>

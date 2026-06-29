@@ -79,6 +79,53 @@ function buildPrompt(sport, date, pdfTexts, notes, optionsFoot) {
   return prompt;
 }
 
+// ROUTE ACTUALITES FOOTBALL VIA GEMINI
+app.get('/api/news', async (req, res) => {
+  const settings = storage.loadSettings();
+  const apiGemini = settings.geminiKey || process.env.GEMINI_API_KEY;
+
+  if (!apiGemini) {
+    return res.status(400).json({ error: "Clé API Gemini requise pour charger l'actualité." });
+  }
+
+  try {
+    const genAI = new GoogleGenerativeAI(apiGemini);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const prompt = `Agis comme un journaliste sportif expert et un pronostiqueur professionnel. La date d'aujourd'hui est le ${new Date().toLocaleDateString('fr-FR')}.
+    Fais une synthèse des informations récentes du monde du football. Tu dois extraire :
+    1. L'actualité liée à la Coupe du Monde 2026 (qualifications, annonces).
+    2. Les dernières informations mercato fiables (en te basant sur des sources comme Fabrizio Romano) et l'actualité du FC Barcelone.
+    3. Un résumé rapide des résultats récents dans les ligues (Chine, MLS, Liga, Ligue 1, Premier League, Serie A, Brésil).
+    4. Trouve 3 prochains matchs réels à venir dans les prochains jours. Pour chacun, donne une recommandation de pari solide avec une cote estimée.
+    5. Fournis des URLs d'images génériques ou de logos (libres de droits, issues de Wikimedia ou Unsplash) pour illustrer chaque section. Si tu n'as pas de lien exact, utilise "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=500&auto=format&fit=crop".
+
+    Renvoie UNIQUEMENT un objet JSON strictement valide avec cette structure exacte :
+    {
+      "worldCup": { "title": "Titre", "desc": "Description détaillée", "image": "url_image" },
+      "barcaTransfers": { "title": "Titre", "desc": "Description détaillée avec Fabrizio Romano", "image": "url_image" },
+      "leagues": [
+        { "name": "MLS / Liga / Chine...", "summary": "Résumé des résultats" }
+      ],
+      "upcomingPicks": [
+        { "match": "Equipe A vs Equipe B", "date": "Jour de la rencontre", "recommendation": "Ton choix de pari", "odds": "Cote estimée", "image": "url_image" }
+      ]
+    }`;
+
+    const result = await model.generateContent(prompt);
+    let jsonText = result.response.text().trim();
+    if (jsonText.startsWith('```')) {
+      jsonText = jsonText.replace(/^```[a-z]*\n?/, '').replace(/\n?```$/, '').trim();
+    }
+
+    const newsData = JSON.parse(jsonText);
+    res.json(newsData);
+  } catch (err) {
+    console.error("Erreur News API:", err);
+    res.status(500).json({ error: "Impossible de récupérer les actualités." });
+  }
+});
+
 async function runEveningAnalysis(date) {
   const settings = storage.loadSettings();
   if (!settings.autoAnalysis) {

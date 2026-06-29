@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initClock();
   initDropZone();
   refreshDashboard();
-  refreshFootballNews();
   
   const today = getLocalYYYYMMDD(Date.now());
   document.getElementById('tickets-date-picker').value = today;
@@ -74,7 +73,6 @@ function switchTab(name) {
   document.getElementById('tab-' + name).classList.add('active');
   document.querySelector(`[data-tab="${name}"]`).classList.add('active');
   if(name === 'historique') showHistoryTab(currentHistTab);
-  if(name === 'home') refreshFootballNews();
 }
 
 function initClock() {
@@ -216,34 +214,65 @@ async function loadLogs() {
 }
 
 // === INTERFACE DE SUIVI DE FOOTBALL (ACCUEIL) ===
-function refreshFootballNews() {
+async function refreshFootballNews() {
+  const btn = document.getElementById('btn-refresh-news');
+  const loader = document.getElementById('news-loading');
   const wdContainer = document.getElementById('wd-news-container');
   const barcaContainer = document.getElementById('barca-news-container');
   const leaguesContainer = document.getElementById('leagues-news-container');
+  const picksContainer = document.getElementById('upcoming-picks-container');
 
-  // Données simulées dynamiques adaptées au contexte de la saison 2026
-  wdContainer.innerHTML = `
-    <div style="background:var(--bg-lighter); padding:12px; border-radius:var(--radius); border:1px solid var(--border);">
-      <div style="font-weight:bold; color:var(--text); margin-bottom:6px;">Groupes & Phases</div>
-      <div style="font-size:12px; color:var(--text-secondary);">Les matchs de poules de la Coupe du Monde 2026 s'enchaînent. Suivi des performances des favoris de l'Euro et d'Amérique Latine.</div>
-    </div>
-    <div style="background:var(--bg-lighter); padding:12px; border-radius:var(--radius); border:1px solid var(--border);">
-      <div style="font-weight:bold; color:var(--accent); margin-bottom:6px;">Tendances Analyses</div>
-      <div style="font-size:12px; color:var(--text-secondary);">Moyenne supérieure à 2.5 buts constatée sur les rencontres de fin de journée. Idéal pour l'orientation des algorithmes de filtrage.</div>
-    </div>
-  `;
+  btn.disabled = true;
+  loader.style.display = 'block';
 
-  barcaContainer.innerHTML = `
-    <div class="log-item"><span class="log-msg"><strong>Mercato:</strong> Discussions avancées sur le renforcement du milieu de terrain offensif. Suivi des profils cibles.</span></div>
-    <div class="log-item"><span class="log-msg"><strong>Actualité:</strong> Planification de la préparation estivale et ajustement de l'effectif selon les contraintes financières.</span></div>
-  `;
+  try {
+    const res = await fetch('/api/news');
+    const data = await res.json();
 
-  leaguesContainer.innerHTML = `
-    <div class="log-item"><span class="log-msg"><strong>MLS:</strong> Matchs intenses à l'Est, cotes attractives sur le marché BTTS.</span></div>
-    <div class="log-item"><span class="log-msg"><strong>Brésil (Série A):</strong> Rythme soutenu en tête de classement.</span></div>
-    <div class="log-item"><span class="log-msg"><strong>Ligue 1 / La Liga / Premier League / Serie A:</strong> Suivi des calendriers de reprise et des bilans de fin de saison (Segunda, Championship, Serie B).</span></div>
-    <div class="log-item"><span class="log-msg"><strong>Chine / Portugal / Turquie:</strong> Analyse statistique de la forme des équipes à domicile.</span></div>
-  `;
+    if(data.error) throw new Error(data.error);
+
+    // Render World Cup
+    wdContainer.innerHTML = `
+      <div style="background:var(--bg-lighter); padding:12px; border-radius:var(--radius); border:1px solid var(--border);">
+        ${data.worldCup.image ? `<img src="${data.worldCup.image}" onerror="this.style.display='none'" style="width:100%; height:120px; object-fit:cover; border-radius:6px; margin-bottom:10px;">` : ''}
+        <div style="font-weight:bold; color:var(--text); margin-bottom:6px;">${escHtml(data.worldCup.title)}</div>
+        <div style="font-size:12px; color:var(--text-secondary); line-height:1.4;">${escHtml(data.worldCup.desc)}</div>
+      </div>
+    `;
+
+    // Render Barca / Fabrizio Romano
+    barcaContainer.innerHTML = `
+      <div style="background:var(--bg-lighter); padding:12px; border-radius:var(--radius); border:1px solid var(--border);">
+        ${data.barcaTransfers.image ? `<img src="${data.barcaTransfers.image}" onerror="this.style.display='none'" style="width:100%; height:120px; object-fit:cover; border-radius:6px; margin-bottom:10px;">` : ''}
+        <div style="font-weight:bold; color:var(--text); margin-bottom:6px;">${escHtml(data.barcaTransfers.title)}</div>
+        <div style="font-size:12px; color:var(--text-secondary); line-height:1.4;">${escHtml(data.barcaTransfers.desc)}</div>
+      </div>
+    `;
+
+    // Render Leagues
+    leaguesContainer.innerHTML = data.leagues.map(l => `
+      <div class="log-item"><span class="log-msg"><strong>${escHtml(l.name)}:</strong> ${escHtml(l.summary)}</span></div>
+    `).join('');
+
+    // Render Upcoming Matches & Recommendations
+    picksContainer.innerHTML = data.upcomingPicks.map(p => `
+      <div style="background:var(--bg-card); padding:12px; border-radius:var(--radius); border:1px solid var(--border); display:flex; gap:10px; align-items:center;">
+        ${p.image ? `<img src="${p.image}" onerror="this.style.display='none'" style="width:60px; height:60px; object-fit:cover; border-radius:50%;">` : ''}
+        <div style="flex:1;">
+          <div style="font-weight:bold; color:var(--accent); font-size:14px;">${escHtml(p.match)}</div>
+          <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">Date: ${escHtml(p.date)}</div>
+          <div style="font-size:12px; color:var(--text);"><span style="color:var(--hp);">✓ Choix I.A :</span> ${escHtml(p.recommendation)}</div>
+          <div style="font-size:12px; font-weight:bold; margin-top:2px;">Cote estimée: ${escHtml(p.odds)}</div>
+        </div>
+      </div>
+    `).join('');
+
+  } catch (err) {
+    alert("Erreur lors du chargement des actualités : " + err.message);
+  } finally {
+    btn.disabled = false;
+    loader.style.display = 'none';
+  }
 }
 
 async function loadTicketsForDate(date) {
